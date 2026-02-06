@@ -1,7 +1,6 @@
 import type { SSRManifest } from "astro";
 import { App } from "astro/app";
 import { handle } from "@astrojs/cloudflare/handler";
-// export * from '@/features/websocket/ChatRoom';
 
 export function createExports(manifest: SSRManifest) {
 	const app = new App(manifest);
