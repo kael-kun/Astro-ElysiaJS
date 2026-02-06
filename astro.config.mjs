@@ -19,21 +19,14 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     ssr: {
-      external: ["node:buffer"]
+      external: ["node:buffer"],
     },
     resolve: {
       //@ts-ignore
       alias: import.meta.env.PROD && {
-<<<<<<< Updated upstream:AstroElysia/astro.config.mjs
-        "react-dom/server": "react-dom/server.edge"
-      }
-    }
-  }
-=======
         "react-dom/server": "react-dom/server.edge",
       },
     },
   },
   integrations: [react()],
->>>>>>> Stashed changes:astro.config.mjs
 });
