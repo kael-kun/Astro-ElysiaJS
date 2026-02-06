@@ -16,4 +16,15 @@ export default defineConfig({
       PUBLIC_GOOGLE_CLIENT_ID: envField.string({ context: "client", access: "public", default: "CHANGE_ME_GOOGLE" }),
     },
   },
+  vite: {
+    ssr: {
+      external: ["node:buffer"]
+    },
+    resolve: {
+      //@ts-ignore
+      alias: import.meta.env.PROD && {
+        "react-dom/server": "react-dom/server.edge"
+      }
+    }
+  }
 });
