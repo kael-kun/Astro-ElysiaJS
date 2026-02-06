@@ -10,6 +10,6 @@
   },
   "ai": {
     "binding": "AI",
-  },
+  },"env": {"staging":{"name":"astro-elysia-preview"}},
   
 }
