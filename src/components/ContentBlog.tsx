@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import { Editor } from "@toast-ui/react-editor";
 
@@ -7,7 +7,6 @@ type FormValues = {
   keywords: string;
   tone: string;
   audience: string;
-  wordCount: number;
 };
 
 export function ContentBlog() {
@@ -16,7 +15,6 @@ export function ContentBlog() {
     keywords: "",
     tone: "professional",
     audience: "",
-    wordCount: 800,
   });
 
   const [loading, setLoading] = useState(false);
@@ -25,12 +23,12 @@ export function ContentBlog() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-
+  const editorRef = useRef<Editor>(null);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [name]: name === "wordCount" ? Number(value) : value,
+      [name]: value,
     }));
   };
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,20 +66,110 @@ export function ContentBlog() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setContent(""); // reset content in state
+    const editor = editorRef.current?.getInstance();
+    if (editor) {
+      editor.setMarkdown(""); // clear editor visually
+    }
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      const mockContent = generateMockBlog(form);
+      const hostOrigin = window.location.origin;
+      const payload = {
+        topic: form.topic,
+        keywords: form.keywords,
+        tone: form.tone,
+        audience: form.audience,
+      };
 
-      console.log(form);
-      setContent(mockContent);
+      console.log("Submitting blog generation request...", payload);
+
+      const response = await fetch(`${hostOrigin}/api/generate-blog`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error("Failed to generate blog content.");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let buffer = "";
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+
+        if (value) {
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith("data: ")) continue;
+
+            const jsonStr = trimmed.replace(/^data:\s*/, "");
+            try {
+              const json = JSON.parse(jsonStr);
+              if (json.response) {
+                const newChunk = json.response;
+
+                // Update React state (for saving, etc.)
+                setContent((prev) => prev + newChunk);
+
+                // ✨ Typing effect: append to editor
+                if (editor) {
+                  const currentMarkdown = editor.getMarkdown();
+                  editor.setMarkdown(currentMarkdown + newChunk);
+                  // Optional: scroll to bottom
+                  const container = editor.getRootElement();
+                  if (container) {
+                    container.scrollTop = container.scrollHeight;
+                  }
+                }
+              }
+            } catch (err) {
+              console.warn("Failed to parse JSON chunk:", jsonStr, err);
+            }
+          }
+        }
+      }
+
+      // Handle leftover buffer
+      if (buffer.startsWith("data: ")) {
+        try {
+          const json = JSON.parse(buffer.replace(/^data:\s*/, ""));
+          if (json.response) {
+            const finalChunk = json.response;
+            setContent((prev) => prev + finalChunk);
+            if (editor) {
+              const currentMarkdown = editor.getMarkdown();
+              editor.setMarkdown(currentMarkdown + finalChunk);
+            }
+          }
+        } catch (err) {
+          console.warn("Failed to parse remaining buffer:", buffer, err);
+        }
+      }
     } catch (err) {
+      console.error("Error in handleSubmit:", err);
       setError("Error generating blog content. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Optional: simulate junk insertion (like typing effect)
+  useEffect(() => {
+    if (!content) return;
+    const editor = editorRef.current?.getInstance();
+    if (!editor) return;
+
+    editor.setMarkdown(content);
+  }, [content]);
   const getBlogData = () => {
     return {
       content,
@@ -174,30 +262,6 @@ export function ContentBlog() {
                     <option value="conversational">Conversational</option>
                   </select>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Word Count</label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="range"
-                      name="wordCount"
-                      min="200"
-                      max="2000"
-                      step="100"
-                      value={form.wordCount}
-                      onChange={handleChange}
-                      className="flex-1 h-2 bg-red-100 rounded-lg appearance-none cursor-pointer accent-red-600"
-                    />
-                    <span className="text-sm font-medium text-gray-700 min-w-[60px] text-right">
-                      {form.wordCount} words
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>200</span>
-                    <span>2000</span>
-                  </div>
-                </div>
-
                 {error && (
                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>
                 )}
@@ -310,7 +374,13 @@ export function ContentBlog() {
                   )}
                 </div>
 
-                <Editor previewStyle="vertical" height="900px" initialEditType="markdown" initialValue={content} />
+                <Editor
+                  ref={editorRef}
+                  previewStyle="vertical"
+                  height="900px"
+                  initialEditType="markdown"
+                  initialValue="" // start empty
+                />
                 <div className="flex items-center justify-end space-x-4 p-6">
                   <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-sm">
                     Save Draft
@@ -335,32 +405,5 @@ export function ContentBlog() {
 }
 
 const generateMockBlog = (form: FormValues) => {
-  return `# ${form.topic}
-
-*Target Audience: ${form.audience || "General Readers"}*  
-*Tone: ${form.tone}*  
-*Keywords: ${form.keywords || "None provided"}*
-
-## Introduction
-
-This is a sample generated blog post about **${form.topic}**. It demonstrates how content might look when generated using AI technology.
-
-## Main Discussion
-
-In today's world, the topic of *${form.topic}* has become increasingly important. Many professionals, especially ${form.audience || "various audiences"}, are paying close attention to developments in this field.
-
-### Key Points
-
-- First key point about ${form.topic} and its practical applications
-- Another important aspect of ${form.topic} that impacts industry standards
-- How ${form.topic} creates opportunities for innovation and growth
-- Real-world examples demonstrating the value of ${form.topic}
-
-> "The future of content creation lies at the intersection of human creativity and artificial intelligence."
-
-## Conclusion
-
-This mock blog demonstrates the structure and formatting of content containing approximately **${form.wordCount} words**. In a production system, the AI would generate comprehensive, well-researched content tailored to your specific requirements. The possibilities for creating high-quality content at scale are truly exciting!
-
-*Generated with AI Blog Generator • ${new Date().toLocaleDateString()}*`;
+  return `# Toyota Fortuner: The Ultimate Car for Business Success\n\nAs a businessman, you understand the importance of making the right impression. Whether it's a meeting with potential investors or a networking event, you want to arrive in style and confidence. That's where the Toyota Fortuner comes in – a rugged, reliable, and feature-packed car that's designed to help you achieve your business goals.\n\n## Unparalleled Reliability\n\nThe Toyota Fortuner is built on a reputation for reliability, with a strong and durable engine that can withstand the demands of daily use. With a 2.8-liter turbocharged diesel engine producing 177 horsepower, you'll have the power and torque you need to tackle any terrain or load. Plus, with a 10-year/160,000 km warranty, you can drive away with confidence knowing you're protected.\n\n### Key Features:\n\n* 2.8-liter turbocharged diesel engine\n* 177 horsepower and 420 Nm of torque\n* 10-year/160,000 km warranty\n\n## Intelligent Technology\n\nThe Toyota Fortuner is equipped with a range of intelligent technologies designed to make your life easier and more efficient. From the intuitive touchscreen infotainment system to the advanced safety features, you'll be well-prepared for any situation.\n\n`;
 };

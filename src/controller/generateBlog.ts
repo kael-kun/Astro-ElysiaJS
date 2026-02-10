@@ -3,12 +3,10 @@ type requestBody = {
   keywords?: string;
   tone: string;
   audience: string;
-  wordCount: number;
 };
 
 export async function generateBlog(body: requestBody, env: Env) {
-  const { topic, keywords, tone, audience, wordCount } = body;
-
+  const { topic, keywords, tone, audience } = body;
   // Optimized system prompt for SEO content creation
   const systemPrompt = `You are an expert SEO content writer specializing in creating high-ranking, human-centered blog content. 
   You follow Google's E-E-A-T guidelines (Experience, Expertise, Authoritativeness, Trustworthiness) and modern SEO best practices:
@@ -21,24 +19,22 @@ export async function generateBlog(body: requestBody, env: Env) {
 
   // Construct detailed user prompt with all parameters
   const userPrompt = `
-Create an SEO-optimized blog post with these specifications:
+Create a comprehensive, SEO-optimized blog post with these specifications:
 TOPIC: ${topic}
 ${keywords ? `PRIMARY KEYWORDS: ${keywords}\n` : ""}
 TONE: ${tone}
 AUDIENCE: ${audience}
-TARGET LENGTH: ${wordCount} words (±10%)
 
 CONTENT REQUIREMENTS:
 1. TITLE: Create a compelling, click-worthy title under 60 characters containing the main keyword
-2. META DESCRIPTION: Generate a separate meta description (155 chars) after the content (label as "META_DESCRIPTION:")
-3. STRUCTURE (use markdown formatting):
+2. STRUCTURE (use markdown formatting):
    - Start with # for H1 title
    - Introduction: Hook readers in first sentence, include primary keyword naturally
-   - 3-5 thematic sections with descriptive ## subheadings (H2)
-   - Use ### for subsections (H3) where needed
-   - Include 1-2 bullet points or numbered lists for scannability
+   - 4-6 thematic sections with descriptive ## subheadings (H2), each section should have 3-5 sentences minimum
+   - Use ### for subsections (H3) where needed, include examples, tips, or actionable advice
+   - Include 2-3 bullet points or numbered lists per section for scannability
    - Conclusion with strong CTA relevant to audience
-4. MARKDOWN FORMATTING RULES:
+3. MARKDOWN FORMATTING RULES:
    - H1: # Title
    - H2: ## Subheading
    - H3: ### Sub-subheading
@@ -48,26 +44,28 @@ CONTENT REQUIREMENTS:
    - Numbered list: 1. item
    - Links: [anchor text](placeholder-url)
    - No HTML tags allowed
-5. SEO ELEMENTS:
+4. SEO ELEMENTS:
    - Place primary keyword in first 100 words
    - Distribute keywords naturally (density 0.5-1.5%)
-   - Include 2-3 LSI keywords contextually
+   - Include 3-5 LSI keywords contextually
    - Add 1 strategic internal link placeholder: [internal link](/relevant-topic)
    - Add 1 authoritative external link placeholder: [authoritative source](https://example.gov)
-6. AUDIENCE TARGETING:
+5. AUDIENCE TARGETING:
    - Address ${audience} directly using "you"
    - Solve specific pain points for this audience
    - Match ${tone} tone consistently
-7. ADDITIONAL SECTIONS:
-   - Include exactly ${Math.floor(wordCount / 300)} relevant FAQs at end
-   - Format FAQs as: ### Q: Question  \n**A:** Answer
-8. STRICT RULES:
+6. ADDITIONAL SECTIONS:
+   - Add a "Common Mistakes" or "Tips & Tricks" section to increase depth
+   - Include a "FAQs" section at the end, formatted as: ### Q: Question  \n**A:** Answer, with at least 4-5 FAQs
+7. STRICT RULES:
    - NEVER mention word count in content
    - NEVER add disclaimers like "As an AI..."
-   - NEVER exceed ${wordCount * 1.1} total words
-   - Output ONLY markdown content + meta description section
-   - Place META_DESCRIPTION at very end after content
-   - NO HTML TAGS allowed`;
+   - Output ONLY the final markdown blog content
+   - NO HTML TAGS allowed
+
+IMPORTANT:
+- The blog should be detailed and informative, suitable for a long-form article
+- Include examples, actionable advice, and insights to make content engaging and valuable`;
 
   // Execute AI generation with optimized prompts
   const response = await env.AI.run("@cf/meta/llama-3-8b-instruct", {
@@ -75,7 +73,8 @@ CONTENT REQUIREMENTS:
       { role: "system", content: systemPrompt.trim() },
       { role: "user", content: userPrompt.trim() },
     ],
+    max_tokens: 2048,
+    stream: true,
   });
-
-  return response;
+  return response as ReadableStream;
 }

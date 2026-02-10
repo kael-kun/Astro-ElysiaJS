@@ -11,13 +11,14 @@ const handle: APIRoute = async (ctx) => {
     aot: false,
     normalize: true,
   }).use(openapi());
-  app.decorate({
-    env: ctx.locals.runtime.env,
-    urlData: ctx.url,
-    astroCookies: ctx.cookies,
-  });
-  // ---=-----------------
-  app.use(GenerateBlogRoutes());
+  app
+    .decorate({
+      env: ctx.locals.runtime.env,
+      urlData: ctx.url,
+      astroCookies: ctx.cookies,
+    })
+    // ---=-----------------
+    .use(GenerateBlogRoutes());
 
   // ---------------------
 

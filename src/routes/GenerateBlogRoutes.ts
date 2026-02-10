@@ -1,21 +1,28 @@
 import Elysia, { t } from "elysia";
 import { typedEnv } from "../types/elysia";
-import { generateBlog } from "src/controller/generateBlog";
-
-export async function GenerateBlogRoutes() {
+import { generateBlog } from "../controller/generateBlog";
+export function GenerateBlogRoutes() {
   const app = new Elysia();
   app.use(typedEnv).post(
     "/generate-blog",
     async ({ body, env }) => {
-      return await generateBlog(body, env);
+      const stream = await generateBlog(body, env);
+
+      // Return as Server-Sent Event stream
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
+      });
     },
     {
       body: t.Object({
-        topic: t.String(),
-        keywords: t.Optional(t.String()),
-        tone: t.String(),
-        audience: t.String(),
-        wordCount: t.Number(),
+        topic: t.String({ required: true }),
+        keywords: t.String({ required: true }),
+        tone: t.String({ required: true }),
+        audience: t.String({ required: true }),
       }),
     },
   );
