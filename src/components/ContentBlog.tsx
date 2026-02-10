@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import MDEditor from "@uiw/react-md-editor";
+import "@toast-ui/editor/dist/toastui-editor.css";
+import { Editor } from "@toast-ui/react-editor";
 
 type FormValues = {
   topic: string;
@@ -21,16 +22,9 @@ export function ContentBlog() {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [draftContent, setDraftContent] = useState("");
-  const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
-
-  useEffect(() => {
-    if (isEditing && content) {
-      setDraftContent(content);
-      setActiveTab("write");
-    }
-  }, [isEditing, content]);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -39,8 +33,38 @@ export function ContentBlog() {
       [name]: name === "wordCount" ? Number(value) : value,
     }));
   };
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Only image files are allowed.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("File size must be under 5MB.");
+      return;
+    }
+
+    setError(null);
+    setFileName(file.name);
+    setUploadedFile(file);
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const result = reader.result as string;
+      setPreviewImage(result);
+    };
+
+    reader.readAsDataURL(file);
+
+    e.target.value = "";
+  };
+
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -48,8 +72,9 @@ export function ContentBlog() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1200));
       const mockContent = generateMockBlog(form);
+
+      console.log(form);
       setContent(mockContent);
-      setIsEditing(false);
     } catch (err) {
       setError("Error generating blog content. Please try again.");
     } finally {
@@ -57,27 +82,15 @@ export function ContentBlog() {
     }
   };
 
-  const handleSaveEdit = () => {
-    setContent(draftContent);
-    setIsEditing(false);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setDraftContent(content);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Escape" && isEditing) {
-      handleCancelEdit();
-    }
+  const getBlogData = () => {
+    return {
+      content,
+      file: uploadedFile,
+    };
   };
 
   return (
-    <div
-      className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8"
-      onKeyDown={handleKeyDown}
-    >
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
@@ -240,214 +253,78 @@ export function ContentBlog() {
             </form>
           </div>
 
-          {/* Preview Section - SINGLE CONTAINER LAYOUT */}
+          {/* Content Section */}
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100">
-            {/* Header with Edit Button */}
-            <div className="px-6 md:px-8 pt-6 md:pt-8 pb-4 border-b border-gray-100">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                    {isEditing ? "Editing Content" : "Generated Content"}
-                  </h2>
-                  <p className="text-gray-600 text-sm">
-                    {content
-                      ? isEditing
-                        ? "Switch tabs to edit or preview. Save changes when ready."
-                        : "Click 'Edit Content' to modify your blog post"
-                      : "Your generated blog content will appear here..."}
-                  </p>
-                </div>
-                {!isEditing && content && (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md whitespace-nowrap"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                    Edit Content
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Content Area */}
-            <div className="px-6 md:px-8 py-6">
-              {content ? (
-                isEditing ? (
-                  // EDIT MODE - SINGLE CONTAINER
-                  <div className="space-y-6">
-                    {/* Tab Navigation */}
-                    <div className="border-b border-gray-200">
-                      <nav className="flex space-x-6" aria-label="Tabs">
-                        <button
-                          onClick={() => setActiveTab("write")}
-                          className={`${
-                            activeTab === "write"
-                              ? "text-red-600 font-semibold border-b-2 border-red-600"
-                              : "text-gray-500 hover:text-gray-700"
-                          } pb-3 px-1 font-medium text-sm md:text-base flex items-center gap-2 transition-colors`}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
-                          Write
-                        </button>
-                        <button
-                          onClick={() => setActiveTab("preview")}
-                          className={`${
-                            activeTab === "preview"
-                              ? "text-red-600 font-semibold border-b-2 border-red-600"
-                              : "text-gray-500 hover:text-gray-700"
-                          } pb-3 px-1 font-medium text-sm md:text-base flex items-center gap-2 transition-colors`}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                            />
-                          </svg>
-                          Preview
-                        </button>
-                      </nav>
-                    </div>
-
-                    {/* Content Display - Occupies Remaining Space */}
-                    <div className="min-h-[400px]">
-                      {activeTab === "write" ? (
-                        <div className="border rounded-lg overflow-hidden bg-white">
-                          <MDEditor
-                            value={draftContent}
-                            onChange={(value) => setDraftContent(value || "")}
-                            preview="edit"
-                            height="100%"
-                            visibleDragbar={false}
-                            textareaProps={{
-                              placeholder: "Write your content here...",
-                              className: "focus:outline-none",
-                            }}
-                            className="w-full h-full border-0"
-                          />
-                        </div>
-                      ) : (
-                        <div className="prose prose-red max-w-none bg-gray-50 rounded-lg border border-gray-200 p-6">
-                          <MDEditor.Markdown
-                            source={draftContent}
-                            style={{ backgroundColor: "transparent", padding: 0 }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  // PREVIEW MODE
-                  <div className="prose prose-red max-w-none min-h-[400px]">
-                    <MDEditor.Markdown source={content} style={{ backgroundColor: "transparent", padding: 0 }} />
-                  </div>
-                )
-              ) : (
-                // Placeholder
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
-                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">No Content Yet</h3>
-                  <p className="text-gray-600 mb-6">
-                    Fill out the form on the left and click "Generate Blog Content" to get started
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {["🚀 Fast Generation", "🎯 SEO Optimized", "📝 Professional Quality"].map((feature, i) => (
-                      <span key={i} className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm font-medium">
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons - FIXED AT BOTTOM */}
             {content && (
-              <div className="border-t border-gray-100 bg-gray-50 px-6 md:px-8 py-4">
-                {isEditing ? (
-                  // Edit Mode Actions
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3">
-                    <div className="flex-1 text-xs text-gray-500"></div>
-                    <div className="flex gap-3">
-                      <button
-                        onClick={handleCancelEdit}
-                        className="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center gap-2 whitespace-nowrap"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <div className="flex flex-col space-y-4">
+                <div className="p-6 border-b border-gray-100">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">Upload Image (Tumbnails)</label>
+
+                  {!previewImage && (
+                    <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 transition-all">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg
+                          className="w-10 h-10 text-gray-400 mb-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                          />
                         </svg>
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleSaveEdit}
-                        className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg font-medium transition-all shadow-md flex items-center gap-2 whitespace-nowrap"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        Save Changes
-                      </button>
+
+                        <p className="mb-2 text-sm text-gray-500">
+                          <span className="font-semibold">Click to upload</span>
+                        </p>
+                        <p className="text-xs text-gray-400">PNG, JPG up to 5MB</p>
+                      </div>
+
+                      <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
+                    </label>
+                  )}
+
+                  {previewImage && (
+                    <div className="flex flex-col gap-3">
+                      <div className="relative w-full max-w-sm">
+                        <img src={previewImage} alt="Preview" className="rounded-lg border border-gray-200 shadow-sm" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPreviewImage(null);
+                            setFileName(null);
+                          }}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition cursor-pointer"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <div className="text-sm text-gray-600">
+                        Selected file: <span className="font-medium">{fileName}</span>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  // Preview Mode Actions
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <button className="flex-1 h-12 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2.5 shadow-md">
-                      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <span className="text-base font-medium">Save Draft</span>
-                    </button>
-                    <button className="flex-1 h-12 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2.5 shadow-md">
-                      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                        />
-                      </svg>
-                      <span className="text-base font-medium">Publish</span>
-                    </button>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                <Editor previewStyle="vertical" height="900px" initialEditType="markdown" initialValue={content} />
+                <div className="flex items-center justify-end space-x-4 p-6">
+                  <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-sm">
+                    Save Draft
+                  </button>
+                  <button
+                    onClick={() => {
+                      const data = getBlogData();
+                      console.log(data);
+                    }}
+                    className="bg-red-500 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm"
+                  >
+                    Publish
+                  </button>
+                </div>
               </div>
             )}
           </div>
