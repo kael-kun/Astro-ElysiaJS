@@ -1,0 +1,8 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { LoginForm } from 'src/components/Login';
+---
+
+<Layout>
+	<LoginForm client:only = "react" />
+</Layout>
