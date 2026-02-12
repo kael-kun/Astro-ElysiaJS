@@ -1,31 +1,42 @@
 import React from "react";
 
-export type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
+export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
   label?: string;
   id: string;
   error?: string;
   helperText?: string;
   required?: boolean;
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
+  resize?: "none" | "vertical" | "horizontal" | "both";
+  showCharCount?: boolean;
+  maxLength?: number;
 };
 
-export function Input({ 
+export function Textarea({ 
   label, 
   id, 
   className = "", 
   error,
   helperText,
   required = false,
-  leftIcon,
-  rightIcon,
+  resize = "vertical",
+  showCharCount = false,
+  maxLength,
+  value,
+  onChange,
   ...props 
-}: InputProps) {
+}: TextareaProps) {
   const baseClasses = "w-full px-4 py-3 rounded-lg border transition-all duration-200 outline-none placeholder:text-gray-400";
   const stateClasses = error
     ? "border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500"
     : "border-gray-200 focus:ring-2 focus:ring-red-500 focus:border-red-500";
-  const iconPadding = leftIcon ? "pl-10" : rightIcon ? "pr-10" : "";
+  const resizeClasses = {
+    none: "resize-none",
+    vertical: "resize-y",
+    horizontal: "resize-x",
+    both: "resize"
+  };
+
+  const charCount = value?.toString().length || 0;
 
   return (
     <div className="w-full">
@@ -39,27 +50,23 @@ export function Input({
         </label>
       )}
       
-      <div className="relative">
-        {leftIcon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            {leftIcon}
-          </div>
-        )}
-        
-        <input
-          id={id}
-          className={`${baseClasses} ${stateClasses} ${iconPadding} ${className}`}
-          aria-invalid={error ? "true" : "false"}
-          aria-describedby={error ? `${id}-error` : helperText ? `${id}-helper` : undefined}
-          {...props}
-        />
-        
-        {rightIcon && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            {rightIcon}
-          </div>
-        )}
-      </div>
+      <textarea
+        id={id}
+        className={`${baseClasses} ${stateClasses} ${resizeClasses[resize]} ${className}`}
+        aria-invalid={error ? "true" : "false"}
+        aria-describedby={error ? `${id}-error` : helperText ? `${id}-helper` : undefined}
+        maxLength={maxLength}
+        value={value}
+        onChange={onChange}
+        {...props}
+      />
+      
+      {(showCharCount || maxLength) && (
+        <div className="mt-1 text-sm text-gray-500 text-right">
+          {showCharCount && `${charCount}`}
+          {maxLength && ` / ${maxLength}`}
+        </div>
+      )}
       
       {error && (
         <p id={`${id}-error`} className="mt-1 text-sm text-red-600">
