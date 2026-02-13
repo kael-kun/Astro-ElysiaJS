@@ -3,9 +3,10 @@ import { BlogForm, BlogFormValues } from "./BlogForm";
 import { ImageUpload } from "./ImageUpload";
 import { BlogEditor } from "./BlogEditor";
 import { BlogPreview } from "./BlogPreview";
-import { useImageUpload } from "./hooks/UseImageUpload";
-import { useBlogGenerator } from "./hooks/UseBlogGenerator";
+import { useImageUpload } from "./hooks/useImageUpload";
+import { useBlogGenerator } from "./hooks/useBlogGenerator";
 import { useDraftManager } from "./hooks/useDraftManager";
+import { Card } from "../ui/Card";
 
 export function BlogContent() {
   const [form, setForm] = useState<BlogFormValues>({
@@ -14,6 +15,7 @@ export function BlogContent() {
     tone: "professional",
     audience: "",
   });
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const { previewImage, fileName, uploadedFile, uploadError, handleFileUpload, removeImage } = useImageUpload();
   const { content, loading, error, generateBlog } = useBlogGenerator();
@@ -29,6 +31,26 @@ export function BlogContent() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate all required fields
+    if (!form.topic.trim()) {
+      setValidationError("Topic is required");
+      return;
+    }
+    if (!form.keywords.trim()) {
+      setValidationError("Keywords are required");
+      return;
+    }
+    if (!form.audience.trim()) {
+      setValidationError("Target audience is required");
+      return;
+    }
+    if (!form.tone.trim()) {
+      setValidationError("Tone is required");
+      return;
+    }
+
+    setValidationError(null);
     generateBlog(form);
   };
 
@@ -47,7 +69,12 @@ export function BlogContent() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center size-16 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 mb-4">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-700 mb-6 pb-2">
@@ -63,12 +90,13 @@ export function BlogContent() {
             form={form}
             loading={loading}
             error={displayError}
+            validationError={validationError}
             onChange={handleChange}
             onSubmit={handleSubmit}
           />
 
           {content && (
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-100">
+            <Card shadow="lg" rounded="xl">
               <ImageUpload
                 previewImage={previewImage}
                 fileName={fileName}
@@ -83,7 +111,7 @@ export function BlogContent() {
                 onPublish={handlePublish}
                 showContent={true}
               />
-            </div>
+            </Card>
           )}
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { Button, Card } from "../ui";
 
 interface ImageUploadProps {
   previewImage: string | null;
@@ -13,7 +14,7 @@ export function ImageUpload({
   fileName, 
   onFileUpload, 
   onRemoveImage,
-  label = "Upload Image (Tumbnails)"
+  label = "Upload Image (Thumbnails)"
 }: ImageUploadProps) {
   return (
     <div className="p-6 border-b border-gray-100">

@@ -1,5 +1,3 @@
-// services/fetchClient.ts
-
 // Base URL
 const API_BASE_URL = import.meta.env.PUBLIC_API_URL || window.location.origin;
 
@@ -11,11 +9,11 @@ export function getAuthHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  
+
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  
+
   return headers;
 }
 
@@ -29,14 +27,11 @@ export function buildUrl(input: string): string {
 /**
  * Auth-aware fetch wrapper with global error handling
  */
-async function authenticatedFetch(
-  input: string,
-  init: RequestInit = {}
-): Promise<Response> {
+async function authenticatedFetch(input: string, init: RequestInit = {}): Promise<Response> {
   // Use the helper to get auth headers
   const defaultHeaders = getAuthHeaders();
   const headers = new Headers(init.headers || {});
-  
+
   // Merge headers (init.headers takes precedence)
   Object.entries(defaultHeaders).forEach(([key, value]) => {
     if (!headers.has(key)) {
@@ -57,7 +52,7 @@ async function authenticatedFetch(
     if (!response.ok) {
       // Parse error response if possible
       let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-      
+
       try {
         const errorData = await response.json();
         const extractedMessage = getErrorMessage(errorData);
@@ -107,16 +102,16 @@ async function authenticatedFetch(
  */
 function getErrorMessage(errorData: unknown): string | null {
   if (typeof errorData === "string") return errorData;
-  
+
   if (typeof errorData === "object" && errorData !== null) {
     const obj = errorData as Record<string, unknown>;
-    
+
     // Check common error field names
     if (typeof obj.message === "string") return obj.message;
     if (typeof obj.error === "string") return obj.error;
     if (typeof obj.detail === "string") return obj.detail;
   }
-  
+
   return null;
 }
 

@@ -11,5 +11,11 @@
   "ai": {
     "binding": "AI",
   },
-  
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cms-database",
+      "database_id": "408f5404-dcfc-45d3-8e90-3b00d0489070",
+    },
+  ],
 }

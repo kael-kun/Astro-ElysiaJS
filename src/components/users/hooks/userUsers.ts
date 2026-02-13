@@ -1,17 +1,34 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import fetchClient from "../../../services/fetchClient";
 import type { User, CreateUserInput, UpdateUserInput } from "../types/user";
 
-export const useUsers = () => {
+interface UseUsersResult {
+  users: User[];
+  loading: boolean;
+  error: string | null;
+  page: number;
+  totalPages: number;
+  totalUsers: number;
+  itemsPerPage: number;
+  fetchUsers: (pageNumber?: number) => Promise<void>;
+  createUser: (data: CreateUserInput) => Promise<User>;
+  updateUser: (data: UpdateUserInput) => Promise<User>;
+  deleteUser: (userId: string) => Promise<void>;
+  getUserBlogs: (userId: string) => Promise<unknown>;
+  setPage: (page: number) => void;
+}
+
+const ITEMS_PER_PAGE = 10;
+
+export const useUsers = (): UseUsersResult => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
-  const ITEMS_PER_PAGE = 10;
 
-  const fetchUsers = async (pageNumber: number = 1) => {
+  const fetchUsers = useCallback(async (pageNumber: number = 1) => {
     try {
       setLoading(true);
       setError(null);
@@ -27,58 +44,60 @@ export const useUsers = () => {
       setTotalUsers(response.total);
       setPage(response.page);
       setTotalPages(response.totalPages);
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch users");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to fetch users";
+      setError(message);
       console.error("Error fetching users:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const createUser = async (data: CreateUserInput) => {
+  const createUser = useCallback(async (data: CreateUserInput): Promise<User> => {
     try {
       const newUser = await fetchClient.post<User>("/api/users", data);
-      await fetchUsers(page); // Refresh the list
+      await fetchUsers(page);
       return newUser;
-    } catch (err: any) {
-      throw new Error(err.message || "Failed to create user");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to create user";
+      throw new Error(message);
     }
-  };
+  }, [fetchUsers, page]);
 
-  const updateUser = async (data: UpdateUserInput) => {
+  const updateUser = useCallback(async (data: UpdateUserInput): Promise<User> => {
     try {
-      const updatedUser = await fetchClient.put<User>(
-        `/api/users/${data.id}`,
-        data
-      );
-      await fetchUsers(page); // Refresh the list
+      const updatedUser = await fetchClient.put<User>(`/api/users/${data.id}`, data);
+      await fetchUsers(page);
       return updatedUser;
-    } catch (err: any) {
-      throw new Error(err.message || "Failed to update user");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to update user";
+      throw new Error(message);
     }
-  };
+  }, [fetchUsers, page]);
 
-  const deleteUser = async (userId: string) => {
+  const deleteUser = useCallback(async (userId: string): Promise<void> => {
     try {
       await fetchClient.delete(`/api/users/${userId}`);
-      await fetchUsers(page); // Refresh the list
-    } catch (err: any) {
-      throw new Error(err.message || "Failed to delete user");
+      await fetchUsers(page);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to delete user";
+      throw new Error(message);
     }
-  };
+  }, [fetchUsers, page]);
 
-  const getUserBlogs = async (userId: string) => {
+  const getUserBlogs = useCallback(async (userId: string): Promise<unknown> => {
     try {
       const blogs = await fetchClient.get(`/api/users/${userId}/blogs`);
       return blogs;
-    } catch (err: any) {
-      throw new Error(err.message || "Failed to fetch user blogs");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to fetch user blogs";
+      throw new Error(message);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchUsers(page);
-  }, [page]);
+  }, [page, fetchUsers]);
 
   return {
     users,

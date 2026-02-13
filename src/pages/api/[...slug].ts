@@ -3,6 +3,7 @@ import type { APIRoute } from "astro";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { openapi } from "@elysiajs/openapi";
 import { GenerateBlogRoutes } from "src/routes/GenerateBlogRoutes";
+import { UserRoutes } from "src/routes/UserRoutes";
 
 const handle: APIRoute = async (ctx) => {
   const app = new Elysia({
@@ -18,7 +19,8 @@ const handle: APIRoute = async (ctx) => {
       astroCookies: ctx.cookies,
     })
     // ---=-----------------
-    .use(GenerateBlogRoutes());
+    .use(GenerateBlogRoutes())
+    .use(UserRoutes());
 
   // ---------------------
 

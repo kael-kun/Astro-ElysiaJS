@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { Button, Card, Select } from "../ui";
 
 interface BlogPreviewProps {
   content: string;
@@ -8,6 +9,11 @@ interface BlogPreviewProps {
   showContent: boolean;
 }
 
+const statusOptions = [
+  { value: "draft", label: "Save as Draft" },
+  { value: "publish", label: "Publish" },
+];
+
 export function BlogPreview({ 
   content, 
   uploadedFile, 
@@ -15,51 +21,60 @@ export function BlogPreview({
   onPublish,
   showContent 
 }: BlogPreviewProps) {
+  const [status, setStatus] = useState<"draft" | "publish">("draft");
+
   if (!showContent) {
     return null;
   }
 
-  const getBlogData = () => {
-    return {
-      content,
-      file: uploadedFile,
-    };
+  const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
+
+  const handleSave = () => {
+    if (status === "draft") {
+      onSaveDraft();
+    } else {
+      onPublish();
+    }
+  };
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStatus(e.target.value as "draft" | "publish");
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-100">
+    <Card shadow="lg" rounded="xl" className="overflow-hidden">
       <div className="flex flex-col space-y-4">
         <div className="p-6 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Blog Preview</h3>
           <div className="text-sm text-gray-600">
-            Word count: {content.split(/\s+/).filter(word => word.length > 0).length} words
+            Word count: {wordCount} words
           </div>
           {uploadedFile && (
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 mt-1">
               Image attached: {uploadedFile.name}
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-end space-x-4 p-6">
-          <button 
-            onClick={onSaveDraft}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors"
+        <div className="flex items-center justify-between px-6">
+          <div className="w-48">
+            <Select
+              id="status"
+              name="status"
+              label="Status"
+              value={status}
+              onChange={handleStatusChange}
+              options={statusOptions}
+            />
+          </div>
+          <Button
+            variant="gradient"
+            onClick={handleSave}
           >
-            Save Draft
-          </button>
-          <button
-            onClick={() => {
-              const data = getBlogData();
-              console.log("Publishing blog data:", data);
-              onPublish();
-            }}
-            className="bg-red-500 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm transition-colors"
-          >
-            Publish
-          </button>
+            Save
+          </Button>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

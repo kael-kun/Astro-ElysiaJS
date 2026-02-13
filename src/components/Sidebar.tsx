@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { LayoutDashboard, FileText, Users, X } from "lucide-react";
+import { Button } from "./ui/Button";
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -8,12 +9,43 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed = false, onCloseMobile }: SidebarProps) {
   const [currentPath, setCurrentPath] = useState("/dashboard");
+  const pathRef = React.useRef("/dashboard");
 
   useEffect(() => {
-    // Get current path from window location
-    if (typeof window !== "undefined") {
-      setCurrentPath(window.location.pathname);
-    }
+    if (typeof window === "undefined") return;
+
+    // Set initial path
+    const initialPath = window.location.pathname;
+    setCurrentPath(initialPath);
+    pathRef.current = initialPath;
+
+    // Listen for browser back/forward
+    const handleLocationChange = () => {
+      const newPath = window.location.pathname;
+      setCurrentPath(newPath);
+      pathRef.current = newPath;
+    };
+
+    window.addEventListener("popstate", handleLocationChange);
+
+    // Use MutationObserver to detect SPA navigation (instant, no polling)
+    const observer = new MutationObserver(() => {
+      const newPath = window.location.pathname;
+      if (newPath !== pathRef.current) {
+        setCurrentPath(newPath);
+        pathRef.current = newPath;
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      window.removeEventListener("popstate", handleLocationChange);
+      observer.disconnect();
+    };
   }, []);
 
   const menuItems = [
@@ -42,13 +74,15 @@ export function Sidebar({ collapsed = false, onCloseMobile }: SidebarProps) {
           </div>
           {/* Mobile close button */}
           {onCloseMobile && (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onCloseMobile}
-              className="md:hidden p-1 rounded text-gray-400 hover:text-white hover:bg-gray-800"
+              className="md:hidden text-gray-400 hover:text-white"
               aria-label="Close sidebar"
             >
               <X className="w-5 h-5" />
-            </button>
+            </Button>
           )}
         </div>
       </div>
