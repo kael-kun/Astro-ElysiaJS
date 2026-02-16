@@ -2,8 +2,7 @@ import { Elysia } from "elysia";
 import type { APIRoute } from "astro";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { openapi } from "@elysiajs/openapi";
-import { GenerateBlogRoutes } from "src/routes/GenerateBlogRoutes";
-import { UserRoutes } from "src/routes/UserRoutes";
+import { UserRoutes, BlogRoutes, GenerateBlogRoutes } from "src/backend";
 
 const handle: APIRoute = async (ctx) => {
   const app = new Elysia({
@@ -18,11 +17,9 @@ const handle: APIRoute = async (ctx) => {
       urlData: ctx.url,
       astroCookies: ctx.cookies,
     })
-    // ---=-----------------
     .use(GenerateBlogRoutes())
-    .use(UserRoutes());
-
-  // ---------------------
+    .use(UserRoutes())
+    .use(BlogRoutes());
 
   return await app.handle(ctx.request);
 };

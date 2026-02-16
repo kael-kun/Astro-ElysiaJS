@@ -98,5 +98,3 @@ export const useBlogGenerator = (): BlogGeneratorResult => {
 
   return { content, loading, error, generateBlog };
 };
-
-

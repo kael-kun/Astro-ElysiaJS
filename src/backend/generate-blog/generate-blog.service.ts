@@ -1,13 +1,9 @@
-type requestBody = {
-  topic: string;
-  keywords?: string;
-  tone: string;
-  audience: string;
-};
+import type { Env } from "../types/index";
+import type { GenerateBlogInput } from "./generate-blog.types";
 
-export async function generateBlog(body: requestBody, env: Env) {
-  const { topic, keywords, tone, audience } = body;
-  // Optimized system prompt for SEO content creation
+export async function generateBlogContent(input: GenerateBlogInput, env: Env): Promise<ReadableStream> {
+  const { topic, keywords, tone, audience } = input;
+
   const systemPrompt = `You are an expert SEO content writer specializing in creating high-ranking, human-centered blog content. 
   You follow Google's E-E-A-T guidelines (Experience, Expertise, Authoritativeness, Trustworthiness) and modern SEO best practices:
   - Naturally integrate keywords without stuffing
@@ -17,7 +13,6 @@ export async function generateBlog(body: requestBody, env: Env) {
   - Maintain consistent tone and audience targeting
   - Output ONLY the final blog content with no commentary, disclaimers, or meta-comments`;
 
-  // Construct detailed user prompt with all parameters
   const userPrompt = `
 Create a comprehensive, SEO-optimized blog post with these specifications:
 TOPIC: ${topic}
@@ -56,7 +51,7 @@ CONTENT REQUIREMENTS:
    - Match ${tone} tone consistently
 6. ADDITIONAL SECTIONS:
    - Add a "Common Mistakes" or "Tips & Tricks" section to increase depth
-   - Include a "FAQs" section at the end, formatted as: ### Q: Question  \n**A:** Answer, with at least 4-5 FAQs
+   - Include a "FAQs" section at the end, formatted as: ### Q: Question  \\n**A:** Answer, with at least 4-5 FAQs
 7. STRICT RULES:
    - NEVER mention word count in content
    - NEVER add disclaimers like "As an AI..."
@@ -67,8 +62,7 @@ IMPORTANT:
 - The blog should be detailed and informative, suitable for a long-form article
 - Include examples, actionable advice, and insights to make content engaging and valuable`;
 
-  // Execute AI generation with optimized prompts
-  const response = await env.AI.run("@cf/meta/llama-3-8b-instruct", {
+  const response = await (env.AI as any).run("@cf/meta/llama-3-8b-instruct", {
     messages: [
       { role: "system", content: systemPrompt.trim() },
       { role: "user", content: userPrompt.trim() },
@@ -76,5 +70,6 @@ IMPORTANT:
     max_tokens: 2048,
     stream: true,
   });
+
   return response as ReadableStream;
 }

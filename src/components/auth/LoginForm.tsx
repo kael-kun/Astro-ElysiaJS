@@ -45,9 +45,7 @@ export function LoginForm({ onSubmit, loading = false, error }: LoginFormProps) 
         </div>
 
         {error && (
-          <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-            {error}
-          </div>
+          <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>
         )}
 
         <form className="space-y-5" onSubmit={handleSubmit} noValidate>
@@ -71,39 +69,10 @@ export function LoginForm({ onSubmit, loading = false, error }: LoginFormProps) 
             autoComplete="current-password"
           />
 
-          <div className="flex items-center justify-between">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="remember"
-                className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
-              />
-              <span className="ml-2 block text-sm text-gray-700">Remember me</span>
-            </label>
-            <a href="/forgot-password" className="text-sm text-red-600 hover:text-red-500">
-              Forgot password?
-            </a>
-          </div>
-
-          <Button 
-            type="submit" 
-            loading={loading}
-            fullWidth
-            size="lg"
-            variant="gradient"
-          >
+          <Button type="submit" loading={loading} fullWidth size="lg" variant="gradient">
             Sign in
           </Button>
         </form>
-
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
-            <a href="/register" className="text-red-600 hover:text-red-500 font-medium">
-              Sign up
-            </a>
-          </p>
-        </div>
       </Card>
     </div>
   );
