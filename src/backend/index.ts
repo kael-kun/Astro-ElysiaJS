@@ -2,7 +2,6 @@ export { UserRoutes } from "./users/users.route";
 export { BlogRoutes } from "./blogs/blogs.route";
 export { GenerateBlogRoutes } from "./generate-blog/generate-blog.route";
 
-export type { Env } from "./types/index";
 export type { UserRole, BlogStatus, BlogLogAction } from "./types/index";
 
 export type {

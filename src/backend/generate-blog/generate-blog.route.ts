@@ -4,7 +4,6 @@ import { typedEnv } from "src/types/elysia";
 import { parseAuthToken } from "../users/users.controller";
 import { generateBlog } from "./generate-blog.controller";
 import type { GenerateBlogInput } from "./generate-blog.types";
-import type { Env } from "../types/index";
 
 function errorResponse(message: string, status: number) {
   return new Response(JSON.stringify({ error: message }), {
@@ -45,7 +44,7 @@ export function GenerateBlogRoutes() {
             tone: body.tone,
             audience: body.audience,
           };
-          const stream = await generateBlog(blogData, env as Env);
+          const stream = await generateBlog(blogData, env as Env, authUser);
 
           return new Response(stream, {
             headers: {

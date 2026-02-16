@@ -12,7 +12,6 @@ import {
   getBlogLogs,
 } from "./blogs.controller";
 import type { CreateBlogInput, UpdateBlogInput } from "./blogs.types";
-import type { Env } from "../types/index";
 
 function errorResponse(message: string, status: number) {
   return new Response(JSON.stringify({ error: message }), {
