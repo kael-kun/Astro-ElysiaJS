@@ -27,15 +27,10 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user");
-      window.location.href = "/login";
-    }
-
-    if (error.response?.status === 403) {
-      // Forbidden
-      console.error("Access forbidden");
+      window.location.href = "/auth/login";
     }
 
     if (error.response?.status === 500) {

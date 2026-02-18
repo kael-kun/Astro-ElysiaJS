@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { LayoutDashboard, FileText, Users, X } from "lucide-react";
+import { LayoutDashboard, FileText, Users, X, LogOut } from "lucide-react";
 import { Button } from "./ui/Button";
+import { useAuth } from "src/providers/AuthProvider";
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -10,6 +11,9 @@ interface SidebarProps {
 export function Sidebar({ collapsed = false, onCloseMobile }: SidebarProps) {
   const [currentPath, setCurrentPath] = useState("/dashboard");
   const pathRef = React.useRef("/dashboard");
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -47,6 +51,22 @@ export function Sidebar({ collapsed = false, onCloseMobile }: SidebarProps) {
       observer.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/auth/login";
+  };
 
   const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
@@ -119,15 +139,50 @@ export function Sidebar({ collapsed = false, onCloseMobile }: SidebarProps) {
       </nav>
 
       {/* User Profile */}
-      <div className="p-4 border-t border-gray-800 mt-auto">
-        <div className={`flex items-center ${collapsed ? "justify-center" : "space-x-3"}`}>
-          <div className="w-9 h-9 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-medium">A</span>
-          </div>
-          {!collapsed && (
-            <div className="overflow-hidden">
-              <p className="text-sm font-medium text-white truncate">Alex Morgan</p>
-              <p className="text-xs text-gray-400 truncate">Administrator</p>
+      <div className="p-4 border-t border-gray-800 mt-auto" ref={menuRef}>
+        <div className={`relative ${collapsed ? "justify-center" : ""}`}>
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className={`flex items-center w-full ${collapsed ? "justify-center" : "space-x-3"} hover:bg-gray-800 p-2 rounded-lg transition-colors`}
+          >
+            <div className="w-9 h-9 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-medium">
+                {user?.name?.charAt(0).toUpperCase() || "G"}
+              </span>
+            </div>
+            {!collapsed && (
+              <div className="overflow-hidden flex-1 text-left">
+                <p className="text-sm font-medium text-white truncate">{user?.name || "Guest"}</p>
+                <p className="text-xs text-gray-400 truncate">
+                  {user?.role === "admin" ? "Administrator" : "Client"}
+                </p>
+              </div>
+            )}
+          </button>
+
+          {/* Dropdown Menu */}
+          {showUserMenu && !collapsed && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
+              <button
+                onClick={handleLogout}
+                className="flex items-center w-full px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+              >
+                <LogOut className="w-4 h-4 mr-3" />
+                Sign Out
+              </button>
+            </div>
+          )}
+
+          {/* Collapsed state logout button */}
+          {showUserMenu && collapsed && (
+            <div className="absolute bottom-full left-full ml-2 mb-2 bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
+              <button
+                onClick={handleLogout}
+                className="flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors whitespace-nowrap"
+              >
+                <LogOut className="w-4 h-4 mr-3" />
+                Sign Out
+              </button>
             </div>
           )}
         </div>

@@ -8,20 +8,13 @@ interface UsersTableProps {
   loading: boolean;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
-  onViewBlogs: (user: User) => void;
 }
 
-export const UsersTable: React.FC<UsersTableProps> = ({
-  users,
-  loading,
-  onEdit,
-  onDelete,
-  onViewBlogs,
-}) => {
+export const UsersTable: React.FC<UsersTableProps> = ({ users, loading, onEdit, onDelete }) => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleViewDetails = (user: User) => {
+  const handleView = (user: User) => {
     setSelectedUser(user);
     setIsModalOpen(true);
   };
@@ -54,39 +47,18 @@ export const UsersTable: React.FC<UsersTableProps> = ({
     const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.client;
 
     return (
-      <span
-        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${config.className}`}
-      >
+      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${config.className}`}>
         {config.label}
       </span>
     );
   };
 
   const renderDate = (dateString: string) => (
-    <div className="text-sm text-gray-500">
-      {new Date(dateString).toLocaleDateString()}
-    </div>
+    <div className="text-sm text-gray-500">{new Date(dateString).toLocaleDateString()}</div>
   );
 
-  const renderActions = (user: User) => (
-    <TableActions
-      item={user}
-      onView={handleViewDetails}
-      onEdit={onEdit}
-      onDelete={onDelete}
-      actions={[
-        {
-          label: "View Blogs",
-          icon: (
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          ),
-          onClick: onViewBlogs,
-          variant: "secondary",
-        },
-      ]}
-    />
+  const renderActions = (_value: unknown, user: User, _index: number) => (
+    <TableActions item={user} onView={handleView} onEdit={onEdit} onDelete={onDelete} />
   );
 
   const columns: Column<User>[] = [
@@ -111,9 +83,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
       key: "blogsCount",
       label: "Blogs",
       align: "center",
-      render: (count = 0) => (
-        <div className="text-sm text-gray-500">{count}</div>
-      ),
+      render: (count = 0) => <div className="text-sm text-gray-500">{count}</div>,
     },
     {
       key: "createdAt",
@@ -139,13 +109,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
         rowClassName={(user) => "hover:bg-gray-50"}
       />
 
-      {selectedUser && (
-        <UserInfoModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          user={selectedUser}
-        />
-      )}
+      {selectedUser && <UserInfoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} user={selectedUser} />}
     </>
   );
 };

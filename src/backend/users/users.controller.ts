@@ -70,17 +70,19 @@ export async function loginUser(
   };
 }
 
-export async function getUsers(env: Env, authUser: AuthUser, limit = 50, offset = 0): Promise<PaginatedUsersResponse> {
+export async function getUsers(env: Env, authUser: AuthUser, limit = 10, page = 1): Promise<PaginatedUsersResponse> {
   if (authUser.role !== "admin") {
     throw new Error("Forbidden: Admin access required");
   }
 
   const userService = createUserService(env);
-  const { users, total } = await userService.findAll(limit, offset);
+  const { users, total, totalPages } = await userService.findAll(limit, page);
 
   return {
     users: users.map(toUserResponse),
     total,
+    page,
+    totalPages,
   };
 }
 

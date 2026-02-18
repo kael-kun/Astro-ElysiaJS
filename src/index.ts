@@ -30,7 +30,6 @@ export { ToastContainer, type ToastContainerProps } from "./components/ui/ToastC
 export { AppProvider } from "./providers/AppProvider";
 export { AuthProvider, useAuth } from "./providers/AuthProvider";
 export { ToastProvider, useToastContext } from "./providers/ToastProvider";
-export { LoadingProvider, useLoading } from "./providers/LoadingProvider";
 
 // Hooks
 export { useToast } from "./hooks/useToast";

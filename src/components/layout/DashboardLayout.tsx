@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import { Sidebar } from "../Sidebar";
 import { Card } from "../../index";
+import { useAuth } from "src/providers/AuthProvider";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -19,6 +20,7 @@ export function DashboardLayout({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(sidebarCollapsed);
   const [isMobile, setIsMobile] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -88,7 +90,9 @@ export function DashboardLayout({
             {/* User info for mobile */}
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center">
-                <span className="text-white text-sm font-medium">A</span>
+                <span className="text-white text-sm font-medium">
+                  {user?.name?.charAt(0).toUpperCase() || "G"}
+                </span>
               </div>
             </div>
           </Card>

@@ -21,6 +21,7 @@ export interface UpdateUserInput {
   id: string;
   email?: string;
   name?: string;
+  password?: string;
   role?: UserRole;
 }
 

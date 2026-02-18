@@ -1,11 +1,11 @@
 ---
-import { DashboardLayout } from "src/components/layout/DashboardLayout"
+import { DashboardLayoutWrapper } from "src/components/layout/DashboardLayoutWrapper";
 import { UsersManagement } from "src/components/users/UsersManagement";
 import Layout from '../../layouts/Layout.astro';
 ---
 
 <Layout>
-	<DashboardLayout client:load title="Users Management">
+	<DashboardLayoutWrapper client:load title="Users Management">
 		<UsersManagement client:only ="react" />
-	</DashboardLayout>
+	</DashboardLayoutWrapper>
 </Layout>

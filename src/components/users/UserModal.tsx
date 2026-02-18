@@ -13,10 +13,11 @@ interface CreateUserFormData {
 }
 
 interface UpdateUserFormData {
-  id: string;
+  id?: string;
   name: string;
   email: string;
   role: UserRole;
+  password?: string;
 }
 
 type UserFormData = CreateUserFormData | UpdateUserFormData;
@@ -68,7 +69,7 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit,
 
     if (!user && !password) {
       newErrors.password = "Password is required for new users";
-    } else if (!user && password.length < 6) {
+    } else if (password && password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
 
@@ -85,7 +86,9 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit,
 
     try {
       // Type-safe data construction
-      const data: UserFormData = user ? { id: user.id, name, email, role } : { name, email, password, role };
+      const data: UserFormData = user
+        ? { name, email, role, ...(password && { password }) }
+        : { name, email, password, role };
 
       await onSubmit(data);
     } catch (err: any) {
@@ -133,19 +136,16 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit,
           error={errors.email}
         />
 
-        {!user && (
-          <Input
-            id="password"
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            required
-            error={errors.password}
-            helperText="Minimum 6 characters"
-          />
-        )}
+        <Input
+          id="password"
+          label={user ? "New Password" : "Password"}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="••••••••"
+          error={errors.password}
+          helperText={user ? "Leave blank to keep current password" : "Minimum 6 characters"}
+        />
 
         <Select
           id="role"

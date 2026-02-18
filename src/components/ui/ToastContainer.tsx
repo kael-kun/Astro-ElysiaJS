@@ -7,11 +7,7 @@ export interface ToastContainerProps {
   position?: "top-right" | "top-left" | "bottom-right" | "bottom-left" | "top-center" | "bottom-center";
 }
 
-export const ToastContainer: React.FC<ToastContainerProps> = ({
-  toasts,
-  onClose,
-  position = "top-right",
-}) => {
+export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onClose, position = "top-right" }) => {
   const positionClasses = {
     "top-right": "top-4 right-4",
     "top-left": "top-4 left-4",
@@ -22,17 +18,9 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({
   };
 
   return (
-    <div
-      className={`fixed z-50 space-y-2 ${positionClasses[position]}`}
-      aria-live="assertive"
-      aria-atomic="true"
-    >
+    <div className={`fixed z-50 space-y-2 w-80 ${positionClasses[position]}`} aria-live="assertive" aria-atomic="true">
       {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          {...toast}
-          onClose={onClose}
-        />
+        <Toast key={toast.id} {...toast} onClose={onClose} />
       ))}
     </div>
   );

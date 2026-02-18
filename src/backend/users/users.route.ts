@@ -42,7 +42,7 @@ export function UserRoutes() {
           return result;
         } catch (err) {
           const message = err instanceof Error ? err.message : "Login failed";
-          return errorResponse(message, 401);
+          return errorResponse(message, 400);
         }
       },
       {
@@ -87,10 +87,10 @@ export function UserRoutes() {
     )
     .get("/users", async ({ query, env, authUser }) => {
       if (!authUser) return errorResponse("Unauthorized", 401);
-      const limit = parseInt(query.limit as string) || 50;
-      const offset = parseInt(query.offset as string) || 0;
+      const limit = parseInt(query.limit as string) || 10;
+      const page = parseInt(query.page as string) || 1;
       try {
-        const result = await getUsers(env, authUser, limit, offset);
+        const result = await getUsers(env, authUser, limit, page);
         return result;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to fetch users";

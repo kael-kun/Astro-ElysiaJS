@@ -1,8 +1,8 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import { LoginForm } from 'src/components/auth/LoginForm';
+import Layout from 'src/layouts/Layout.astro';
+import LoginWrapper from 'src/components/auth/LoginWrapper';
 ---
 
 <Layout>
-	<LoginForm client:load />
+	<LoginWrapper client:only="react" />
 </Layout>

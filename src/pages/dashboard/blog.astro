@@ -1,11 +1,11 @@
 ---
-import { DashboardLayout } from "src/components/layout/DashboardLayout"
+import {DashboardLayoutWrapper} from "src/components/layout/DashboardLayoutWrapper"
 import { BlogContent } from "src/components/blog/BlogContent"
 import Layout from '../../layouts/Layout.astro';
 ---
 
 <Layout>
-	<DashboardLayout client:load title="Blog Generator">
+	<DashboardLayoutWrapper client:load title="Blog Generator">
 		<BlogContent client:only="react" server:defer>
 		<div slot="fallback" class="h-[100vh] w-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center p-4">
 		<div class="w-full max-w-3xl space-y-6">
@@ -18,5 +18,5 @@ import Layout from '../../layouts/Layout.astro';
 			</div>
 		</div>
 	</BlogContent >
-	</DashboardLayout>
+	</DashboardLayoutWrapper>
 </Layout>

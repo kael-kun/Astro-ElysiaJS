@@ -8,10 +8,7 @@ export interface UserActionsProps {
 export const UserActions: React.FC<UserActionsProps> = ({ onAddUser }) => {
   return (
     <div className="mb-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-600">Manage users, roles, and permissions</p>
-        </div>
+      <div className="flex items-center justify-end">
         <Button
           variant="gradient"
           onClick={onAddUser}

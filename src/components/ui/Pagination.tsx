@@ -22,54 +22,59 @@ export const Pagination: React.FC<PaginationProps> = ({
   maxVisible = 5,
   className = "",
 }) => {
-  const startItem = totalItems ? (currentPage - 1) * itemsPerPage + 1 : 0;
-  const endItem = totalItems ? Math.min(currentPage * itemsPerPage, totalItems) : 0;
+  const safeTotalItems = Number(totalItems) || 0;
+  const safeCurrentPage = Number(currentPage) || 1;
+  const safeItemsPerPage = Number(itemsPerPage) || 10;
+  const safeTotalPages = Number(totalPages) || 1;
+
+  const startItem = safeTotalItems ? (safeCurrentPage - 1) * safeItemsPerPage + 1 : 0;
+  const endItem = safeTotalItems ? Math.min(safeCurrentPage * safeItemsPerPage, safeTotalItems) : 0;
 
   const getPageNumbers = useMemo(() => {
     const pages: (number | string)[] = [];
 
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
+    if (safeTotalPages <= maxVisible) {
+      for (let i = 1; i <= safeTotalPages; i++) {
         pages.push(i);
       }
     } else {
-      if (currentPage <= 3) {
+      if (safeCurrentPage <= 3) {
         for (let i = 1; i <= 4; i++) pages.push(i);
         pages.push("...");
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
+        pages.push(safeTotalPages);
+      } else if (safeCurrentPage >= safeTotalPages - 2) {
         pages.push(1);
         pages.push("...");
-        for (let i = totalPages - 3; i <= totalPages; i++) {
+        for (let i = safeTotalPages - 3; i <= safeTotalPages; i++) {
           pages.push(i);
         }
       } else {
         pages.push(1);
         pages.push("...");
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+        for (let i = safeCurrentPage - 1; i <= safeCurrentPage + 1; i++) {
           pages.push(i);
         }
         pages.push("...");
-        pages.push(totalPages);
+        pages.push(safeTotalPages);
       }
     }
 
     return pages;
-  }, [currentPage, totalPages, maxVisible]);
+  }, [safeCurrentPage, safeTotalPages, maxVisible]);
 
   const handlePrevious = () => {
-    if (currentPage > 1) {
-      onPageChange(currentPage - 1);
+    if (safeCurrentPage > 1) {
+      onPageChange(safeCurrentPage - 1);
     }
   };
 
   const handleNext = () => {
-    if (currentPage < totalPages) {
-      onPageChange(currentPage + 1);
+    if (safeCurrentPage < safeTotalPages) {
+      onPageChange(safeCurrentPage + 1);
     }
   };
 
-  if (totalPages <= 1) {
+  if (safeTotalPages <= 1) {
     return null;
   }
 
@@ -77,8 +82,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     <div className={`flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 ${className}`}>
       {showInfo && totalItems ? (
         <div className="text-sm text-gray-700">
-          Showing <span className="font-medium">{startItem}</span> to{" "}
-          <span className="font-medium">{endItem}</span> of{" "}
+          Showing <span className="font-medium">{startItem}</span> to <span className="font-medium">{endItem}</span> of{" "}
           <span className="font-medium">{totalItems}</span> results
         </div>
       ) : (
@@ -86,44 +90,31 @@ export const Pagination: React.FC<PaginationProps> = ({
       )}
 
       <div className="flex items-center space-x-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handlePrevious}
-          disabled={currentPage === 1}
-        >
+        <Button variant="ghost" size="sm" onClick={handlePrevious} disabled={safeCurrentPage === 1}>
           Previous
         </Button>
 
         <div className="flex items-center space-x-1">
           {getPageNumbers.map((page, index) =>
             typeof page === "string" ? (
-              <span
-                key={`ellipsis-${index}`}
-                className="px-3 py-2 text-sm font-medium text-gray-500"
-              >
+              <span key={`ellipsis-${index}`} className="px-3 py-2 text-sm font-medium text-gray-500">
                 {page}
               </span>
             ) : (
               <Button
                 key={page}
-                variant={currentPage === page ? "primary" : "ghost"}
+                variant={safeCurrentPage === page ? "primary" : "ghost"}
                 size="sm"
                 onClick={() => onPageChange(page)}
-                className={`w-10 h-10 p-0 ${currentPage !== page ? "text-gray-700" : ""}`}
+                className={`w-10 h-10 p-0 ${safeCurrentPage !== page ? "text-gray-700" : ""}`}
               >
                 {page}
               </Button>
-            )
+            ),
           )}
         </div>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleNext}
-          disabled={currentPage === totalPages}
-        >
+        <Button variant="ghost" size="sm" onClick={handleNext} disabled={safeCurrentPage === safeTotalPages}>
           Next
         </Button>
       </div>

@@ -20,17 +20,14 @@ export interface ToastProviderProps {
   position?: "top-right" | "top-left" | "bottom-right" | "bottom-left" | "top-center" | "bottom-center";
 }
 
-export const ToastProvider: React.FC<ToastProviderProps> = ({
-  children,
-  position = "top-right",
-}) => {
+export const ToastProvider: React.FC<ToastProviderProps> = ({ children, position = "top-right" }) => {
   const toast = useToast();
 
   return (
     <ToastContext.Provider value={toast}>
       {children}
       <ToastContainer
-        toasts={toast.toasts.map(t => ({ ...t, onClose: () => toast.removeToast(t.id) }))}
+        toasts={toast.toasts.map((t) => ({ ...t, onClose: () => toast.removeToast(t.id) }))}
         onClose={toast.removeToast}
         position={position}
       />

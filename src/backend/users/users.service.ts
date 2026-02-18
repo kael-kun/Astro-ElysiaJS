@@ -40,16 +40,19 @@ export class UserService {
     return result || null;
   }
 
-  async findAll(limit = 50, offset = 0): Promise<{ users: DbUser[]; total: number }> {
+  async findAll(limit = 10, page = 1): Promise<{ users: DbUser[]; total: number; page: number; totalPages: number }> {
+    const offset = (page - 1) * limit;
+
     const countResult = await this.db.prepare("SELECT COUNT(*) as total FROM users").first<{ total: number }>();
     const total = countResult?.total ?? 0;
+    const totalPages = Math.ceil(total / limit);
 
     const result = await this.db
       .prepare(`SELECT * FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?`)
       .bind(limit, offset)
       .all<DbUser>();
 
-    return { users: result.results, total };
+    return { users: result.results, total, page, totalPages };
   }
 
   async update(id: string, data: UpdateUserInput): Promise<DbUser> {

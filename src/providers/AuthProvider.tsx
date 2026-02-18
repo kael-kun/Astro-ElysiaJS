@@ -23,7 +23,7 @@ export interface AuthContextType extends AuthState {
   updateUser: (user: Partial<User>) => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>(null!);
 
 export interface AuthProviderProps {
   children: ReactNode;
@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const token = localStorage.getItem("auth_token");
       const userStr = localStorage.getItem("user");
-      
+
       if (token && userStr) {
         const user = JSON.parse(userStr);
         setState({
@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = (user: User, token: string) => {
     localStorage.setItem("auth_token", token);
     localStorage.setItem("user", JSON.stringify(user));
-    
+
     setState({
       user,
       token,
@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("user");
-    
+
     setState({
       user: null,
       token: null,
@@ -91,27 +91,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const updatedUser = { ...state.user, ...userData };
     localStorage.setItem("user", JSON.stringify(updatedUser));
-    
+
     setState((prev) => ({
       ...prev,
       user: updatedUser,
     }));
   };
 
-  const value: AuthContextType = {
-    ...state,
-    login,
-    logout,
-    updateUser,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        ...state,
+        login,
+        logout,
+        updateUser,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+  return useContext(AuthContext);
 };

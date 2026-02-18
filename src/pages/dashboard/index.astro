@@ -1,11 +1,11 @@
 ---
-import { DashboardLayout } from "src/components/layout/DashboardLayout"
+import {DashboardLayoutWrapper} from "src/components/layout/DashboardLayoutWrapper"
 import { DashboardContent } from "src/components/dashboard/DashboardContent"
 import Layout from '../../layouts/Layout.astro';
 ---
 
 <Layout>
-	<DashboardLayout client:load title="Dashboard">
+	<DashboardLayoutWrapper client:load title="Dashboard">
 		<DashboardContent client:load />
-	</DashboardLayout>
+	</DashboardLayoutWrapper>
 </Layout>

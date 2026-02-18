@@ -49,4 +49,6 @@ export interface LoginResponse {
 export interface PaginatedUsersResponse {
   users: UserResponse[];
   total: number;
+  page: number;
+  totalPages: number;
 }

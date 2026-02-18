@@ -7,15 +7,10 @@ export interface AppProviderProps {
   toastPosition?: "top-right" | "top-left" | "bottom-right" | "bottom-left" | "top-center" | "bottom-center";
 }
 
-export const AppProvider: React.FC<AppProviderProps> = ({
-  children,
-  toastPosition = "top-right",
-}) => {
+export const AppProvider: React.FC<AppProviderProps> = ({ children, toastPosition = "top-right" }) => {
   return (
     <AuthProvider>
-      <ToastProvider position={toastPosition}>
-        {children}
-      </ToastProvider>
+      <ToastProvider position={toastPosition}>{children}</ToastProvider>
     </AuthProvider>
   );
 };
