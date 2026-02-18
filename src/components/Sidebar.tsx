@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { LayoutDashboard, FileText, Users, X, LogOut } from "lucide-react";
+import { LayoutDashboard, FileText, Users, X, LogOut, FolderOpen } from "lucide-react";
 import { Button } from "./ui/Button";
 import { useAuth } from "src/providers/AuthProvider";
 
@@ -70,6 +70,7 @@ export function Sidebar({ collapsed = false, onCloseMobile }: SidebarProps) {
 
   const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { name: "Projects", icon: FolderOpen, href: "/dashboard/projects" },
     { name: "Blog", icon: FileText, href: "/dashboard/blog" },
     { name: "Users", icon: Users, href: "/dashboard/users" },
   ];

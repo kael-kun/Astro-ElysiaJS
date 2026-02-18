@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BlogForm, BlogFormValues } from "./BlogForm";
 import { ImageUpload } from "./ImageUpload";
 import { BlogEditor } from "./BlogEditor";
@@ -7,8 +7,17 @@ import { useImageUpload } from "./hooks/useImageUpload";
 import { useBlogGenerator } from "./hooks/useBlogGenerator";
 import { useDraftManager } from "./hooks/useDraftManager";
 import { Card } from "../ui/Card";
+import apiClient from "../../services/apiClient";
+import type { Project } from "../projects/types/project";
 
-export function BlogContent() {
+interface BlogContentProps {
+  projectId?: string;
+}
+
+export function BlogContent({ projectId: initialProjectId }: BlogContentProps) {
+  const [projectId, setProjectId] = useState<string | undefined>(initialProjectId);
+  const [project, setProject] = useState<Project | null>(null);
+  const [loadingProject, setLoadingProject] = useState(false);
   const [form, setForm] = useState<BlogFormValues>({
     topic: "",
     keywords: "",
@@ -18,8 +27,38 @@ export function BlogContent() {
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const { previewImage, fileName, uploadedFile, uploadError, handleFileUpload, removeImage } = useImageUpload();
-  const { content, loading, error, generateBlog } = useBlogGenerator();
+  const { content, loading, error, generateBlog } = useBlogGenerator(projectId);
   const { saveDraft } = useDraftManager();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlProjectId = params.get("projectId");
+
+    if (urlProjectId && urlProjectId !== projectId) {
+      setProjectId(urlProjectId);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!projectId) {
+      setProject(null);
+      return;
+    }
+
+    const fetchProject = async () => {
+      setLoadingProject(true);
+      try {
+        const response = await apiClient.get<Project>(`/api/project/${projectId}`);
+        setProject(response.data);
+      } catch (err) {
+        console.error("Failed to fetch project:", err);
+      } finally {
+        setLoadingProject(false);
+      }
+    };
+
+    fetchProject();
+  }, [projectId]);
 
   // Merge upload error with generation error
   const displayError = error || uploadError;
@@ -77,10 +116,23 @@ export function BlogContent() {
               />
             </svg>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-700 mb-6 pb-2">
+          <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-700 mb-2 pb-2">
             AI Blog Generator
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          {project && (
+            <div className="inline-flex items-center px-4 py-2 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                />
+              </svg>
+              {loadingProject ? "Loading..." : project.name}
+            </div>
+          )}
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto mt-4">
             Create engaging, SEO-optimized blog content in seconds with AI power
           </p>
         </div>

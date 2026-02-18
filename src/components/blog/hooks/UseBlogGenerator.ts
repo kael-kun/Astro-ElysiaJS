@@ -20,7 +20,7 @@ interface StreamChunk {
   error?: string;
 }
 
-export const useBlogGenerator = (): BlogGeneratorResult => {
+export const useBlogGenerator = (projectId?: string): BlogGeneratorResult => {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,10 +33,16 @@ export const useBlogGenerator = (): BlogGeneratorResult => {
     try {
       const headers = getAuthHeaders();
       const hostOrigin = window.location.origin;
+      
+      const requestBody = {
+        ...form,
+        ...(projectId && { projectId }),
+      };
+      
       const response = await fetch(`${hostOrigin}/api/generate-blog`, {
         method: "POST",
         headers,
-        body: JSON.stringify(form),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok || !response.body) {
@@ -94,7 +100,7 @@ export const useBlogGenerator = (): BlogGeneratorResult => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [projectId]);
 
   return { content, loading, error, generateBlog };
 };

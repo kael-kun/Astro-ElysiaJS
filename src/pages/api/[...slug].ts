@@ -2,7 +2,7 @@ import { Elysia } from "elysia";
 import type { APIRoute } from "astro";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { openapi } from "@elysiajs/openapi";
-import { UserRoutes, BlogRoutes, GenerateBlogRoutes } from "src/backend";
+import { UserRoutes, BlogRoutes, GenerateBlogRoutes, ProjectRoutes } from "src/backend";
 
 const handle: APIRoute = async (ctx) => {
   const app = new Elysia({
@@ -19,7 +19,8 @@ const handle: APIRoute = async (ctx) => {
     })
     .use(GenerateBlogRoutes())
     .use(UserRoutes())
-    .use(BlogRoutes());
+    .use(BlogRoutes())
+    .use(ProjectRoutes());
 
   return await app.handle(ctx.request);
 };
