@@ -7,6 +7,8 @@ interface BlogPreviewProps {
   onSaveDraft: () => void;
   onPublish: () => void;
   showContent: boolean;
+  onSave?: () => void;
+  saving?: boolean;
 }
 
 const statusOptions = [
@@ -19,7 +21,9 @@ export function BlogPreview({
   uploadedFile, 
   onSaveDraft, 
   onPublish,
-  showContent 
+  showContent,
+  onSave,
+  saving = false
 }: BlogPreviewProps) {
   const [status, setStatus] = useState<"draft" | "publish">("draft");
 
@@ -30,7 +34,9 @@ export function BlogPreview({
   const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
 
   const handleSave = () => {
-    if (status === "draft") {
+    if (onSave) {
+      onSave();
+    } else if (status === "draft") {
       onSaveDraft();
     } else {
       onPublish();
@@ -70,6 +76,7 @@ export function BlogPreview({
           <Button
             variant="gradient"
             onClick={handleSave}
+            loading={saving}
           >
             Save
           </Button>

@@ -8,6 +8,7 @@ import { ProjectActions } from "./ProjectActions";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import { useProjects } from "./hooks/useProjects";
 import { useToast } from "../../hooks/useToast";
+import { formatDate } from "src/utils";
 import type { Project, CreateProjectInput, UpdateProjectInput } from "./types/project";
 
 export function ProjectsContent() {
@@ -69,7 +70,7 @@ export function ProjectsContent() {
   };
 
   const handleViewBlogs = (project: Project) => {
-    window.location.href = `/dashboard/blog?projectId=${project.id}`;
+    window.location.href = `/dashboard/blogs?projectId=${project.id}`;
   };
 
   const handleSubmit = async (data: CreateProjectInput | UpdateProjectInput) => {
@@ -96,14 +97,6 @@ export function ProjectsContent() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   const renderActions = (_value: unknown, project: Project, _index: number) => (
     <ProjectActions
       onViewBlogs={() => handleViewBlogs(project)}
@@ -121,11 +114,7 @@ export function ProjectsContent() {
     {
       key: "description",
       label: "Description",
-      render: (value) => (
-        <span className="text-gray-500">
-          {value || "No description"}
-        </span>
-      ),
+      render: (value) => <span className="text-gray-500">{value || "No description"}</span>,
     },
     {
       key: "createdAt",
@@ -156,17 +145,10 @@ export function ProjectsContent() {
         </Button>
       </div>
 
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">{error}</div>
-      )}
+      {error && <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">{error}</div>}
 
       <Card shadow="md" rounded="lg" className="overflow-hidden">
-        <Table<Project>
-          data={projects}
-          columns={columns}
-          loading={loading}
-          keyField="id"
-        />
+        <Table<Project> data={projects} columns={columns} loading={loading} keyField="id" />
 
         <Pagination
           currentPage={page}
@@ -200,9 +182,8 @@ export function ProjectsContent() {
         title="Delete Project"
         message={
           <span>
-            Are you sure you want to delete{" "}
-            <span className="font-semibold text-gray-900">{projectToDelete?.name}</span>?
-            This action cannot be undone.
+            Are you sure you want to delete <span className="font-semibold text-gray-900">{projectToDelete?.name}</span>
+            ? This action cannot be undone.
           </span>
         }
         confirmText="Delete"

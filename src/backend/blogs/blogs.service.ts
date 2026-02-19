@@ -134,7 +134,7 @@ export class BlogService {
 
     const result = await this.db
       .prepare(
-        `INSERT INTO blog_logs (id, blog_id, user_id, action, details, created_at)
+        `INSERT INTO blog_logs (id, project_id, blog_id, user_id, action, details, created_at)
          VALUES (?, ?, ?, ?, ?, ?)`,
       )
       .bind(id, data.blog_id, data.user_id, data.action, data.details || null, now)

@@ -55,8 +55,10 @@ export interface BlogWithUser extends BlogResponse {
 }
 
 export interface PaginatedBlogsResponse {
-  blogs: BlogResponse[];
+  results: BlogResponse[];
   total: number;
+  page: number;
+  totalPages: number;
 }
 
 export interface CreateBlogLogInput {

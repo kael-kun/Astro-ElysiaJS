@@ -1,0 +1,11 @@
+---
+import { DashboardLayoutWrapper } from "src/components/layout/DashboardLayoutWrapper";
+import { GenerateBlogContent } from "src/components/blog/GenerateBlogContent";
+import Layout from "../../../layouts/Layout.astro";
+---
+
+<Layout>
+  <DashboardLayoutWrapper client:load title="Generate Blog">
+    <GenerateBlogContent client:only="react" />
+  </DashboardLayoutWrapper>
+</Layout>

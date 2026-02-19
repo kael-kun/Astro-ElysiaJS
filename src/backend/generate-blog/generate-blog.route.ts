@@ -64,6 +64,7 @@ export function GenerateBlogRoutes() {
           keywords: t.Optional(t.String()),
           tone: t.String({ required: true }),
           audience: t.String({ required: true }),
+          projectId: t.String({ required: true }),
         }),
       },
     );

@@ -1,4 +1,3 @@
-import type { Env } from "../types/index";
 import type { GenerateBlogInput } from "./generate-blog.types";
 
 export async function generateBlogContent(input: GenerateBlogInput, env: Env): Promise<ReadableStream> {

@@ -98,9 +98,14 @@ export async function getBlogs(
     result = await blogService.findByUserId(authUser.id, limit, offset);
   }
 
+  const page = Math.floor(offset / limit) + 1;
+  const totalPages = Math.ceil(result.total / limit);
+
   return {
-    blogs: result.blogs.map(toBlogResponse),
+    results: result.blogs.map(toBlogResponse),
     total: result.total,
+    page,
+    totalPages,
   };
 }
 

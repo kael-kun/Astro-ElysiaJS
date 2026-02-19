@@ -69,14 +69,13 @@ export function Sidebar({ collapsed = false, onCloseMobile }: SidebarProps) {
   };
 
   const menuItems = [
-    { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard/overview" },
     { name: "Projects", icon: FolderOpen, href: "/dashboard/projects" },
-    { name: "Blog", icon: FileText, href: "/dashboard/blog" },
     { name: "Users", icon: Users, href: "/dashboard/users" },
   ];
 
   const isActive = (href: string) => {
-    return currentPath === href || (href !== "/dashboard" && currentPath.startsWith(href));
+    return currentPath === href || (href !== "/dashboard/" && currentPath.startsWith(href));
   };
 
   return (
@@ -147,16 +146,12 @@ export function Sidebar({ collapsed = false, onCloseMobile }: SidebarProps) {
             className={`flex items-center w-full ${collapsed ? "justify-center" : "space-x-3"} hover:bg-gray-800 p-2 rounded-lg transition-colors`}
           >
             <div className="w-9 h-9 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-medium">
-                {user?.name?.charAt(0).toUpperCase() || "G"}
-              </span>
+              <span className="text-white font-medium">{user?.name?.charAt(0).toUpperCase() || "G"}</span>
             </div>
             {!collapsed && (
               <div className="overflow-hidden flex-1 text-left">
                 <p className="text-sm font-medium text-white truncate">{user?.name || "Guest"}</p>
-                <p className="text-xs text-gray-400 truncate">
-                  {user?.role === "admin" ? "Administrator" : "Client"}
-                </p>
+                <p className="text-xs text-gray-400 truncate">{user?.role === "admin" ? "Administrator" : "Client"}</p>
               </div>
             )}
           </button>
