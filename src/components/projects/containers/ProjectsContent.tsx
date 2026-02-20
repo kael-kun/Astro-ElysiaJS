@@ -1,17 +1,21 @@
 import React, { useState } from "react";
-import { Card } from "../ui/Card";
-import { Button } from "../ui/Button";
-import { Table, Column } from "../ui/Table";
-import { Pagination } from "../ui/Pagination";
-import { ProjectModal } from "./ProjectModal";
-import { ProjectActions } from "./ProjectActions";
-import { ConfirmModal } from "../ui/ConfirmModal";
-import { useProjects } from "./hooks/useProjects";
-import { useToast } from "../../hooks/useToast";
+import { Card } from "../../ui/Card";
+import { Button } from "../../ui/Button";
+import { Table, Column } from "../../ui/Table";
+import { Pagination } from "../../ui/Pagination";
+import { ProjectModal } from "../components/ProjectModal";
+import { ProjectActions } from "../components/ProjectActions";
+import { ConfirmModal } from "../../ui/ConfirmModal";
+import { useProjects } from "../hooks/useProjects";
+import { useToast } from "../../../hooks/useToast";
+import { useAuth } from "src/providers/AuthProvider";
 import { formatDate } from "src/utils";
-import type { Project, CreateProjectInput, UpdateProjectInput } from "./types/project";
+import type { Project, CreateProjectInput, UpdateProjectInput } from "../types/project";
 
 export function ProjectsContent() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+
   const {
     projects,
     loading,
@@ -70,7 +74,7 @@ export function ProjectsContent() {
   };
 
   const handleViewBlogs = (project: Project) => {
-    window.location.href = `/dashboard/blogs?projectId=${project.id}`;
+    window.location.href = `/dashboard/blogs?projectId=${project.id}&action=list`;
   };
 
   const handleSubmit = async (data: CreateProjectInput | UpdateProjectInput) => {
@@ -111,6 +115,15 @@ export function ProjectsContent() {
       label: "Project Name",
       sortable: true,
     },
+    ...(isAdmin
+      ? [
+          {
+            key: "user_name",
+            label: "Client",
+            render: (value) => <span className="text-gray-900 font-medium">{value || "Unknown"}</span>,
+          } as Column<Project>,
+        ]
+      : []),
     {
       key: "description",
       label: "Description",
@@ -134,8 +147,10 @@ export function ProjectsContent() {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
-          <p className="text-gray-500 mt-1">Manage your projects and organize your blogs</p>
+          <h1 className="text-2xl font-bold text-gray-900">{isAdmin ? "All Projects" : "My Projects"}</h1>
+          <p className="text-gray-500 mt-1">
+            {isAdmin ? "Manage all client projects and their blogs" : "Manage your projects and organize your blogs"}
+          </p>
         </div>
         <Button onClick={handleAddProject} variant="primary">
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

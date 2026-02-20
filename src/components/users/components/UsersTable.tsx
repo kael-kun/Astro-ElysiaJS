@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Table, TableActions, Column } from "../ui/Table";
+import { Table, TableActions, Column } from "src";
 import { UserInfoModal } from "./UserInfoModal";
-import type { User } from "./types/user";
+import type { User } from "src/components/users/types/user";
 
 interface UsersTableProps {
   users: User[];
@@ -78,12 +78,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({ users, loading, onEdit, 
       label: "Role",
       render: renderRole,
       sortable: true,
-    },
-    {
-      key: "blogsCount",
-      label: "Blogs",
-      align: "center",
-      render: (count = 0) => <div className="text-sm text-gray-500">{count}</div>,
     },
     {
       key: "createdAt",

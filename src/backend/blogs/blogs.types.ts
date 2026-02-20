@@ -53,6 +53,8 @@ export interface BlogResponse {
   image_url: string | null;
   createdAt: string;
   updatedAt: string;
+  project_name?: string;
+  user_name?: string;
 }
 
 export interface BlogWithUser extends BlogResponse {

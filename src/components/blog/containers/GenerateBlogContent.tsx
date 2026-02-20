@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { BlogForm, BlogFormValues } from "./BlogForm";
-import { ImageUpload } from "./ImageUpload";
-import { BlogEditor } from "./BlogEditor";
-import { BlogPreview } from "./BlogPreview";
-import { useImageUpload } from "./hooks/useImageUpload";
-import { useBlogGenerator } from "./hooks/UseBlogGenerator";
-import { Card } from "../ui/Card";
-import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
-import apiClient from "../../services/apiClient";
-import { useToast } from "../../hooks/useToast";
+import { BlogForm, BlogFormValues } from "src/components/blog/components/BlogForm";
+import { ImageUpload } from "src/components/blog/components/ImageUpload";
+import { BlogEditor } from "src/components/blog/components/BlogEditor";
+import { BlogPreview } from "src/components/blog/components/BlogPreview";
+import { useImageUpload } from "src/components/blog/hooks/useImageUpload";
+import { useBlogGenerator } from "src/components/blog/hooks/UseBlogGenerator";
+import { Card } from "src";
+import { Button } from "src";
+import { Input } from "src";
+import apiClient from "src/services/apiClient";
+import { useToast } from "src/hooks/useToast";
 
 interface Project {
   id: string;

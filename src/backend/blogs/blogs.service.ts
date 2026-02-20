@@ -1,6 +1,11 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type { DbBlog, CreateBlogInput, UpdateBlogInput, DbBlogLog, CreateBlogLogInput } from "./blogs.types";
 
+export interface BlogWithRelations extends DbBlog {
+  project_name?: string;
+  user_name?: string;
+}
+
 export class BlogService {
   constructor(private db: D1Database) {}
 
@@ -74,32 +79,35 @@ export class BlogService {
     return { blogs: result.results, total };
   }
 
-  async findAll(limit = 50, offset = 0, status?: string): Promise<{ blogs: DbBlog[]; total: number }> {
-    let query = "SELECT COUNT(*) as total FROM blogs";
+  async findAll(limit = 50, offset = 0, status?: string): Promise<{ blogs: BlogWithRelations[]; total: number }> {
+    let countQuery = "SELECT COUNT(*) as total FROM blogs";
     const params: (string | number)[] = [];
 
     if (status) {
-      query += " WHERE status = ?";
+      countQuery += " WHERE status = ?";
       params.push(status);
     }
 
     const countResult = await this.db
-      .prepare(query)
+      .prepare(countQuery)
       .bind(...params)
       .first<{ total: number }>();
     const total = countResult?.total ?? 0;
 
-    let selectQuery = "SELECT * FROM blogs";
+    let selectQuery = `SELECT b.*, p.name as project_name, u.name as user_name 
+                       FROM blogs b 
+                       LEFT JOIN projects p ON b.project_id = p.id 
+                       LEFT JOIN users u ON b.user_id = u.id`;
     if (status) {
-      selectQuery += " WHERE status = ?";
+      selectQuery += " WHERE b.status = ?";
     }
-    selectQuery += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+    selectQuery += " ORDER BY b.created_at DESC LIMIT ? OFFSET ?";
     params.push(limit, offset);
 
     const result = await this.db
       .prepare(selectQuery)
       .bind(...params)
-      .all<DbBlog>();
+      .all<BlogWithRelations>();
 
     return { blogs: result.results, total };
   }

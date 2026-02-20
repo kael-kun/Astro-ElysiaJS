@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
-import { Sidebar } from "../Sidebar";
+import { Sidebar } from "../navigation/Sidebar";
 import { Card } from "../../index";
 import { useAuth } from "src/providers/AuthProvider";
 

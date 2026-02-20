@@ -1,6 +1,6 @@
 import React from "react";
-import { StatsCard } from "../ui/StatsCard";
-import type { User } from "./types/user";
+import { StatsCard } from "src";
+import type { User } from "src/components/users/types/user";
 
 export interface UserStatsProps {
   users: User[];
@@ -8,21 +8,12 @@ export interface UserStatsProps {
   loading?: boolean;
 }
 
-export const UserStats: React.FC<UserStatsProps> = ({
-  users,
-  totalUsers,
-  loading = false,
-}) => {
+export const UserStats: React.FC<UserStatsProps> = ({ users, totalUsers, loading = false }) => {
   const adminCount = users.filter((u: User) => u.role === "admin").length;
   const clientCount = users.filter((u: User) => u.role === "client").length;
 
   const userIcon = (
-    <svg
-      className="h-6 w-6"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
+    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -33,12 +24,7 @@ export const UserStats: React.FC<UserStatsProps> = ({
   );
 
   const adminIcon = (
-    <svg
-      className="h-6 w-6"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
+    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -49,12 +35,7 @@ export const UserStats: React.FC<UserStatsProps> = ({
   );
 
   const clientIcon = (
-    <svg
-      className="h-6 w-6"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
+    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"

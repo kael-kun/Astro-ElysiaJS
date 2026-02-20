@@ -1,13 +1,10 @@
 ---
-import { DashboardLayoutWrapper } from "src/components/layout/DashboardLayoutWrapper";
-import { BlogViewContent } from "src/components/blog/BlogViewContent";
 import Layout from "../../../../layouts/Layout.astro";
+import { BlogViewContainer } from "src/components/blog/containers/BlogViewContainer";
 
 const { id } = Astro.params;
 ---
 
-<Layout>
-  <DashboardLayoutWrapper client:load title="View Blog">
-    <BlogViewContent client:only="react" blogId={id || ""} />
-  </DashboardLayoutWrapper>
+<Layout client:load>
+  <BlogViewContainer client:only="react" blogId={id || ""} />
 </Layout>

@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Card } from "../ui";
+import { Button, Card } from "src/components/ui";
 
 interface ImageUploadProps {
   previewImage: string | null;
@@ -9,12 +9,12 @@ interface ImageUploadProps {
   label?: string;
 }
 
-export function ImageUpload({ 
-  previewImage, 
-  fileName, 
-  onFileUpload, 
+export function ImageUpload({
+  previewImage,
+  fileName,
+  onFileUpload,
   onRemoveImage,
-  label = "Upload Image (Thumbnails)"
+  label = "Upload Image (Thumbnails)",
 }: ImageUploadProps) {
   return (
     <div className="p-6 border-b border-gray-100">
@@ -23,12 +23,7 @@ export function ImageUpload({
       {!previewImage ? (
         <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 transition-all">
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
-            <svg
-              className="w-10 h-10 text-gray-400 mb-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-10 h-10 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -43,21 +38,12 @@ export function ImageUpload({
             <p className="text-xs text-gray-400">PNG, JPG up to 5MB</p>
           </div>
 
-          <input 
-            type="file" 
-            className="hidden" 
-            accept="image/*" 
-            onChange={onFileUpload} 
-          />
+          <input type="file" className="hidden" accept="image/*" onChange={onFileUpload} />
         </label>
       ) : (
         <div className="flex flex-col gap-3">
           <div className="relative w-full max-w-sm">
-            <img 
-              src={previewImage} 
-              alt="Preview" 
-              className="rounded-lg border border-gray-200 shadow-sm" 
-            />
+            <img src={previewImage} alt="Preview" className="rounded-lg border border-gray-200 shadow-sm" />
             <button
               type="button"
               onClick={onRemoveImage}

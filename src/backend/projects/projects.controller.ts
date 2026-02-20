@@ -14,6 +14,7 @@ function toProjectResponse(project: {
   description: string | null;
   created_at: string;
   updated_at: string;
+  user_name?: string;
 }): ProjectResponse {
   return {
     id: project.id,
@@ -22,6 +23,7 @@ function toProjectResponse(project: {
     description: project.description,
     createdAt: project.created_at,
     updatedAt: project.updated_at,
+    user_name: project.user_name,
   };
 }
 
@@ -32,6 +34,18 @@ export async function getProjects(
   page = 1,
 ): Promise<PaginatedProjectsResponse> {
   const projectService = createProjectService(env);
+
+  let result;
+  if (authUser.role === "admin") {
+    result = await projectService.findAll(limit, page);
+    return {
+      projects: result.projects.map((p) => toProjectResponse(p)),
+      total: result.total,
+      page: result.page,
+      totalPages: result.totalPages,
+    };
+  }
+
   const { projects, total, totalPages } = await projectService.findByUserId(authUser.id, limit, page);
 
   return {

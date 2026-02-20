@@ -57,6 +57,30 @@ export class ProjectService {
     return { projects: result.results, total, page, totalPages };
   }
 
+  async findAll(
+    limit = 10,
+    page = 1,
+  ): Promise<{ projects: (DbProject & { user_name: string })[]; total: number; page: number; totalPages: number }> {
+    const offset = (page - 1) * limit;
+
+    const countResult = await this.db.prepare("SELECT COUNT(*) as total FROM projects").first<{ total: number }>();
+    const total = countResult?.total ?? 0;
+    const totalPages = Math.ceil(total / limit);
+
+    const result = await this.db
+      .prepare(
+        `SELECT p.*, u.name as user_name 
+         FROM projects p 
+         LEFT JOIN users u ON p.user_id = u.id 
+         ORDER BY p.created_at DESC 
+         LIMIT ? OFFSET ?`,
+      )
+      .bind(limit, offset)
+      .all<DbProject & { user_name: string }>();
+
+    return { projects: result.results, total, page, totalPages };
+  }
+
   async update(id: string, userId: string, data: UpdateProjectInput): Promise<DbProject> {
     const existing = await this.findById(id);
     if (!existing) {

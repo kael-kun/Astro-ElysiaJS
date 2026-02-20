@@ -94,7 +94,11 @@ export const useProjects = (): UseProjectsResult => {
   const updateProject = useCallback(
     async (data: UpdateProjectInput & { id: string }): Promise<Project> => {
       try {
-        const response = await apiClient.put<Project>(`/api/project/${data.id}`, data);
+        const payload = {
+          name: data.name,
+          description: data.description,
+        };
+        const response = await apiClient.put<Project>(`/api/project/${data.id}`, payload);
         await fetchProjects(page);
         return response.data;
       } catch (err) {

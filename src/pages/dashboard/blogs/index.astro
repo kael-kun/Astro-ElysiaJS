@@ -1,11 +1,8 @@
 ---
-import { DashboardLayoutWrapper } from "src/components/layout/DashboardLayoutWrapper";
-import { BlogListContent } from "src/components/blog/BlogListContent";
+import { BlogListContainer } from "src/components/blog/containers/BlogListContainer";
 import Layout from "../../../layouts/Layout.astro";
 ---
 
-<Layout>
-  <DashboardLayoutWrapper client:load title="Blogs">
-    <BlogListContent client:only="react" />
-  </DashboardLayoutWrapper>
+<Layout client:load>
+  <BlogListContainer client:only="react" />
 </Layout>

@@ -1,6 +1,6 @@
 import React from "react";
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from "../ui";
-import type { User } from "./types/user";
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from "src";
+import type { User } from "src/components/users/types/user";
 
 interface UserInfoModalProps {
   isOpen: boolean;
@@ -8,11 +8,7 @@ interface UserInfoModalProps {
   user: User;
 }
 
-export const UserInfoModal: React.FC<UserInfoModalProps> = ({
-  isOpen,
-  onClose,
-  user,
-}) => {
+export const UserInfoModal: React.FC<UserInfoModalProps> = ({ isOpen, onClose, user }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -21,9 +17,7 @@ export const UserInfoModal: React.FC<UserInfoModalProps> = ({
     });
   };
 
-  const roleClass = user.role === "admin"
-    ? "bg-red-100 text-red-800"
-    : "bg-blue-100 text-blue-800";
+  const roleClass = user.role === "admin" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800";
 
   const infoItems = [
     { label: "Name", value: user.name },
@@ -36,7 +30,7 @@ export const UserInfoModal: React.FC<UserInfoModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
       <ModalHeader title="User Details" gradient />
-      
+
       <ModalBody>
         <div className="space-y-6">
           {/* Avatar */}
@@ -50,24 +44,22 @@ export const UserInfoModal: React.FC<UserInfoModalProps> = ({
           <div className="space-y-4">
             {infoItems.map((item) => (
               <div key={item.label}>
-                <label className="block text-sm font-medium text-gray-500">
-                  {item.label}
-                </label>
+                <label className="block text-sm font-medium text-gray-500">{item.label}</label>
                 {item.isTag ? (
-                  <span className={`mt-1 px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${item.tagClass}`}>
+                  <span
+                    className={`mt-1 px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${item.tagClass}`}
+                  >
                     {item.value}
                   </span>
                 ) : (
-                  <p className="mt-1 text-lg font-semibold text-gray-900">
-                    {item.value}
-                  </p>
+                  <p className="mt-1 text-lg font-semibold text-gray-900">{item.value}</p>
                 )}
               </div>
             ))}
           </div>
         </div>
       </ModalBody>
-      
+
       <ModalFooter>
         <Button variant="primary" onClick={onClose}>
           Close

@@ -5,6 +5,7 @@ export interface Project {
   description: string | null;
   createdAt: string;
   updatedAt: string;
+  user_name?: string;
 }
 
 export interface CreateProjectInput {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { FormModal } from "../ui/FormModal";
-import { Input } from "../ui/Input";
-import type { Project, CreateProjectInput, UpdateProjectInput } from "./types/project";
+import { FormModal } from "src";
+import { Input } from "src";
+import type { Project, CreateProjectInput, UpdateProjectInput } from "src/components/projects/types/project";
 
 interface ProjectModalProps {
   isOpen: boolean;
@@ -60,9 +60,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
   const isEditing = !!project;
   const submitText = isEditing ? "Update Project" : "Create Project";
   const modalTitle = isEditing ? "Edit Project" : "Add New Project";
-  const modalDescription = isEditing
-    ? "Update project details"
-    : "Create a new project to organize your blogs";
+  const modalDescription = isEditing ? "Update project details" : "Create a new project to organize your blogs";
 
   return (
     <FormModal
@@ -103,9 +101,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
           />
         </div>
 
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>
-        )}
+        {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>}
       </div>
     </FormModal>
   );

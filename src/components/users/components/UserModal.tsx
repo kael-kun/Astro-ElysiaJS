@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { FormModal } from "../ui/FormModal";
-import { Input } from "../ui/Input";
-import { Select } from "../ui/Select";
-import { UserRole } from "./types/user";
+import { FormModal } from "src";
+import { Input } from "src";
+import { Select } from "src";
+import { UserRole } from "src/components/users/types/user";
 
 // Define proper types for form submission
 interface CreateUserFormData {

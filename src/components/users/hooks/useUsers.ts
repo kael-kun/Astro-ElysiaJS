@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import apiClient from "../../../services/apiClient";
 import { getApiErrorMessage } from "../../../services/apiError";
 import type { User, CreateUserInput, UpdateUserInput } from "../types/user";
+import { useToastContext } from "../../../providers/ToastProvider";
 
 interface UseUsersResult {
   users: User[];
@@ -43,6 +44,7 @@ export const useUsers = (): UseUsersResult => {
   const [page, setPageState] = useState(getInitialPageFromURL);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
+  const { error: showError, success: showSuccess } = useToastContext();
 
   const fetchUsers = useCallback(
     async (pageNumber: number = page) => {
@@ -56,13 +58,13 @@ export const useUsers = (): UseUsersResult => {
           page: number;
           totalPages: number;
         }>(`/api/users?page=${pageNumber}&limit=${ITEMS_PER_PAGE}`);
-
         setUsers(response.data.users);
         setTotalUsers(response.data.total);
         setPageState(response.data.page);
         setTotalPages(response.data.totalPages);
       } catch (err) {
         const message = getApiErrorMessage(err);
+        showError(message);
         setError(message);
         console.error("Error fetching users:", err);
       } finally {
@@ -82,9 +84,11 @@ export const useUsers = (): UseUsersResult => {
     async (data: CreateUserInput): Promise<User> => {
       try {
         const response = await apiClient.post<User>("/api/user", data);
+        showSuccess("User created successfully");
         await fetchUsers(page);
         return response.data;
       } catch (err) {
+        showError("Failed to create user. Please try again.");
         const message = getApiErrorMessage(err);
         throw new Error(message);
       }
@@ -96,9 +100,11 @@ export const useUsers = (): UseUsersResult => {
     async (id: string, data: UpdateUserInput): Promise<User> => {
       try {
         const response = await apiClient.put<User>(`/api/user/${id}`, data);
+        showSuccess("User updated successfully");
         await fetchUsers(page);
         return response.data;
       } catch (err) {
+        showError("Failed to update user. Please try again.");
         const message = getApiErrorMessage(err);
         throw new Error(message);
       }
@@ -110,8 +116,10 @@ export const useUsers = (): UseUsersResult => {
     async (userId: string): Promise<void> => {
       try {
         await apiClient.delete(`/api/user/${userId}`);
+        showSuccess("User deleted successfully");
         await fetchUsers(page);
       } catch (err) {
+        showError("Failed to delete user. Please try again.");
         const message = getApiErrorMessage(err);
         throw new Error(message);
       }

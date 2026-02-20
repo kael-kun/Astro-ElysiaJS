@@ -1,11 +1,7 @@
 ---
-import {DashboardLayoutWrapper} from "src/components/layout/DashboardLayoutWrapper"
-import { DashboardContent } from "src/components/dashboard/DashboardContent"
+import {DashboardContainer} from "src/components/dashboard/DashboardContainer";
 import Layout from '../../layouts/Layout.astro';
 ---
-
-<Layout>
-	<DashboardLayoutWrapper client:load title="Dashboard">
-		<DashboardContent client:load />
-	</DashboardLayoutWrapper>
+<Layout client:load>
+	<DashboardContainer client:only="react" />
 </Layout>

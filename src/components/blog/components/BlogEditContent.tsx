@@ -2,12 +2,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import { BlogEditor } from "./BlogEditor";
 import { BlogPreview } from "./BlogPreview";
 import { ImageUpload } from "./ImageUpload";
-import { useImageUpload } from "./hooks/useImageUpload";
-import { Card } from "../ui/Card";
-import { Button } from "../ui/Button";
-import { Input } from "../ui/Input";
-import apiClient from "../../services/apiClient";
-import { useToast } from "../../hooks/useToast";
+import { useImageUpload } from "../hooks/useImageUpload";
+import { Card } from "../../ui/Card";
+import { Button } from "../../ui/Button";
+import { Input } from "../../ui/Input";
+import apiClient from "src/services/apiClient";
+import { useToast } from "src/";
 
 interface BlogData {
   id: string;
@@ -43,7 +43,8 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
   const [status, setStatus] = useState<"draft" | "published">("draft");
 
   const { success, error: showError } = useToast();
-  const { previewImage, fileName, uploadedFile, uploadError, handleFileUpload, removeImage, setPreviewImage } = useImageUpload();
+  const { previewImage, fileName, uploadedFile, uploadError, handleFileUpload, removeImage, setPreviewImage } =
+    useImageUpload();
 
   const fetchBlog = useCallback(async () => {
     try {
@@ -186,9 +187,7 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
           <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-700 mb-2 pb-2">
             Edit Blog
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl4">
-            Update mx-auto mt- your blog content and metadata
-          </p>
+          <p className="text-gray-600 text-lg max-w-2xl4">Update mx-auto mt- your blog content and metadata</p>
         </div>
 
         <Card shadow="lg" rounded="xl">

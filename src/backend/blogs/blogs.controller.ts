@@ -20,6 +20,8 @@ function toBlogResponse(blog: {
   image_url: string | null;
   created_at: string;
   updated_at: string;
+  project_name?: string;
+  user_name?: string;
 }): BlogResponse {
   return {
     id: blog.id,
@@ -32,6 +34,8 @@ function toBlogResponse(blog: {
     image_url: blog.image_url,
     createdAt: blog.created_at,
     updatedAt: blog.updated_at,
+    project_name: blog.project_name,
+    user_name: blog.user_name,
   };
 }
 

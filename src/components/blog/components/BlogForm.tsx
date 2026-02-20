@@ -1,5 +1,5 @@
 import React from "react";
-import { Input, Select, Button, Card } from "../ui";
+import { Input, Select, Button, Card } from "src/components/ui";
 
 export interface BlogFormValues {
   topic: string;
@@ -66,12 +66,12 @@ export function BlogForm({ form, loading, error, validationError, onChange, onSu
             required
           />
 
-          <Select 
-            id="tone" 
-            name="tone" 
-            label="Tone" 
-            value={form.tone} 
-            onChange={onChange} 
+          <Select
+            id="tone"
+            name="tone"
+            label="Tone"
+            value={form.tone}
+            onChange={onChange}
             options={toneOptions}
             required
           />

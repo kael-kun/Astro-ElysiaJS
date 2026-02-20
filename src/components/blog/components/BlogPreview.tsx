@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Card } from "../ui";
+import { Button, Card } from "src/components/ui";
 
 interface BlogPreviewProps {
   content: string;
@@ -11,8 +11,8 @@ interface BlogPreviewProps {
   statusOptions?: { value: string; label: string }[];
 }
 
-export function BlogPreview({ 
-  content, 
+export function BlogPreview({
+  content,
   showContent,
   onSave,
   saving = false,
@@ -24,16 +24,14 @@ export function BlogPreview({
     return null;
   }
 
-  const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
+  const wordCount = content.split(/\s+/).filter((word) => word.length > 0).length;
 
   return (
     <Card shadow="lg" rounded="xl" className="overflow-hidden">
       <div className="flex flex-col space-y-4">
         <div className="p-6 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Blog Preview</h3>
-          <div className="text-sm text-gray-600">
-            Word count: {wordCount} words
-          </div>
+          <div className="text-sm text-gray-600">Word count: {wordCount} words</div>
         </div>
 
         <div className="flex items-center justify-between px-6 pb-6">
@@ -56,11 +54,7 @@ export function BlogPreview({
           ) : (
             <div />
           )}
-          <Button
-            variant="gradient"
-            onClick={onSave}
-            loading={saving}
-          >
+          <Button variant="gradient" onClick={onSave} loading={saving}>
             Save
           </Button>
         </div>

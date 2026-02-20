@@ -3,10 +3,10 @@ import { UserStats } from "./UserStats";
 import { UserActions } from "./UserActions";
 import { UserTableSection } from "./UserTableSection";
 import { UserModal } from "./UserModal";
-import { ConfirmModal } from "../ui/ConfirmModal";
-import { useUsers } from "./hooks/useUsers";
-import { useToast } from "../../hooks/useToast";
-import type { User } from "./types/user";
+import { ConfirmModal } from "src/components/ui/ConfirmModal";
+import { useUsers } from "src/components/users/hooks/useUsers";
+import { useToast } from "src/hooks/useToast";
+import type { User } from "src/components/users/types/user";
 
 export function UsersManagement() {
   const {

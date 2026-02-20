@@ -1,8 +1,8 @@
 import React from "react";
-import { Card } from "../ui/Card";
+import { Card } from "src";
 import { UsersTable } from "./UsersTable";
-import { Pagination } from "../ui/Pagination";
-import type { User } from "./types/user";
+import { Pagination } from "src/components/ui/Pagination";
+import type { User } from "src/components/users/types/user";
 
 export interface UserTableSectionProps {
   users: User[];

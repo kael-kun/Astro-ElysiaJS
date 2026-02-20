@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { LayoutDashboard, FileText, Users, X, LogOut, FolderOpen } from "lucide-react";
-import { Button } from "./ui/Button";
+import { Button } from "../ui/Button";
 import { useAuth } from "src/providers/AuthProvider";
 
 interface SidebarProps {
@@ -71,7 +71,8 @@ export function Sidebar({ collapsed = false, onCloseMobile }: SidebarProps) {
   const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard/overview" },
     { name: "Projects", icon: FolderOpen, href: "/dashboard/projects" },
-    { name: "Users", icon: Users, href: "/dashboard/users" },
+    { name: "Blogs", icon: FileText, href: "/dashboard/blogs" },
+    ...(user?.role === "admin" ? [{ name: "Users", icon: Users, href: "/dashboard/users" }] : []),
   ];
 
   const isActive = (href: string) => {
