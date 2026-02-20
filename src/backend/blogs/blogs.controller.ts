@@ -12,6 +12,8 @@ import { createBlogService } from "./blogs.service";
 function toBlogResponse(blog: {
   id: string;
   user_id: string;
+  title: string | null;
+  description: string | null;
   content: string | null;
   meta_description: string | null;
   status: string;
@@ -23,6 +25,8 @@ function toBlogResponse(blog: {
     id: blog.id,
     user_id: blog.user_id,
     content: blog.content,
+    title: blog.title,
+    description: blog.description,
     meta_description: blog.meta_description,
     status: blog.status as BlogResponse["status"],
     image_url: blog.image_url,
@@ -88,11 +92,15 @@ export async function getBlogs(
   limit = 50,
   offset = 0,
   status?: string,
+  projectId?: string,
 ): Promise<PaginatedBlogsResponse> {
   const blogService = createBlogService(env);
 
   let result;
-  if (authUser.role === "admin") {
+  if (projectId) {
+    // Filter by project
+    result = await blogService.findByProjectId(projectId, limit, offset, status);
+  } else if (authUser.role === "admin") {
     result = await blogService.findAll(limit, offset, status);
   } else {
     result = await blogService.findByUserId(authUser.id, limit, offset);

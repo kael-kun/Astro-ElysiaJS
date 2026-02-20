@@ -38,7 +38,6 @@ CREATE TABLE projects (
   description TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_projects_user_id ON projects(user_id);
@@ -49,6 +48,8 @@ CREATE INDEX idx_projects_user_id ON projects(user_id);
 CREATE TABLE blogs (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
+  title TEXT,
+  description TEXT,
   content TEXT,
   meta_description TEXT,
   status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
@@ -56,8 +57,6 @@ CREATE TABLE blogs (
   project_id TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL
 );
 
 CREATE INDEX idx_blogs_user_id ON blogs(user_id);
@@ -70,15 +69,15 @@ CREATE INDEX idx_blogs_project_id ON blogs(project_id);
 -- ---------------------------------------------
 CREATE TABLE blog_logs (
   id TEXT PRIMARY KEY,
-  blog_id TEXT NOT NULL,
+  blog_id TEXT,
   user_id TEXT NOT NULL,
   action TEXT NOT NULL CHECK (action IN ('created', 'updated', 'published', 'deleted')),
   details TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (blog_id) REFERENCES blogs(id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_blog_logs_blog_id ON blog_logs(blog_id);
 CREATE INDEX idx_blog_logs_user_id ON blog_logs(user_id);
 CREATE INDEX idx_blog_logs_created_at ON blog_logs(created_at DESC);
+
+

@@ -8,18 +8,29 @@ export class BlogService {
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
 
+    // Handle image - convert File to string URL or store directly
+    let imageUrl: string | null = null;
+    if (data.image) {
+      // For now, we'll just store the file name or a placeholder
+      // In production, you'd upload to R2/storage and get a URL
+      imageUrl = typeof data.image === "string" ? data.image : null;
+    }
+
     const result = await this.db
       .prepare(
-        `INSERT INTO blogs (id, user_id, content, meta_description, status, image_url, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO blogs (id, user_id, title, description, content, meta_description, status, image_url, project_id, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         id,
         data.user_id,
+        data.title || null,
+        data.description || null,
         data.content,
         data.meta_description || null,
         data.status || "draft",
-        data.image_url || null,
+        imageUrl,
+        data.project_id || null,
         now,
         now,
       )
@@ -32,10 +43,12 @@ export class BlogService {
     return {
       id,
       user_id: data.user_id,
+      title: data.title || null,
+      description: data.description || null,
       content: data.content,
       meta_description: data.meta_description || null,
       status: data.status || "draft",
-      image_url: data.image_url || null,
+      image_url: imageUrl,
       created_at: now,
       updated_at: now,
     };
@@ -91,6 +104,39 @@ export class BlogService {
     return { blogs: result.results, total };
   }
 
+  async findByProjectId(projectId: string, limit = 50, offset = 0, status?: string): Promise<{ blogs: DbBlog[]; total: number }> {
+    let countQuery = "SELECT COUNT(*) as total FROM blogs WHERE project_id = ?";
+    const countParams: (string | number)[] = [projectId];
+    
+    if (status) {
+      countQuery += " AND status = ?";
+      countParams.push(status);
+    }
+
+    const countResult = await this.db
+      .prepare(countQuery)
+      .bind(...countParams)
+      .first<{ total: number }>();
+    const total = countResult?.total ?? 0;
+
+    let selectQuery = "SELECT * FROM blogs WHERE project_id = ?";
+    const selectParams: (string | number)[] = [projectId];
+    
+    if (status) {
+      selectQuery += " AND status = ?";
+      selectParams.push(status);
+    }
+    selectQuery += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+    selectParams.push(limit, offset);
+
+    const result = await this.db
+      .prepare(selectQuery)
+      .bind(...selectParams)
+      .all<DbBlog>();
+
+    return { blogs: result.results, total };
+  }
+
   async update(id: string, data: UpdateBlogInput): Promise<DbBlog> {
     const existing = await this.findById(id);
     if (!existing) {
@@ -121,6 +167,10 @@ export class BlogService {
   }
 
   async delete(id: string): Promise<void> {
+    // First delete related blog_logs
+    await this.db.prepare("DELETE FROM blog_logs WHERE blog_id = ?").bind(id).run();
+    
+    // Then delete the blog
     const result = await this.db.prepare(`DELETE FROM blogs WHERE id = ?`).bind(id).run();
 
     if (!result.success) {
@@ -134,7 +184,7 @@ export class BlogService {
 
     const result = await this.db
       .prepare(
-        `INSERT INTO blog_logs (id, project_id, blog_id, user_id, action, details, created_at)
+        `INSERT INTO blog_logs (id, blog_id, user_id, action, details, created_at)
          VALUES (?, ?, ?, ?, ?, ?)`,
       )
       .bind(id, data.blog_id, data.user_id, data.action, data.details || null, now)

@@ -8,8 +8,15 @@ export interface BlogFormData {
   audience: string;
 }
 
+export interface BlogMetadata {
+  title: string;
+  description: string;
+  meta_description: string;
+}
+
 export interface BlogGeneratorResult {
   content: string;
+  metadata: BlogMetadata;
   loading: boolean;
   error: string | null;
   generateBlog: (form: BlogFormData) => Promise<void>;
@@ -22,6 +29,11 @@ interface StreamChunk {
 
 export const useBlogGenerator = (projectId?: string): BlogGeneratorResult => {
   const [content, setContent] = useState("");
+  const [metadata, setMetadata] = useState<BlogMetadata>({
+    title: "",
+    description: "",
+    meta_description: "",
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,27 +41,47 @@ export const useBlogGenerator = (projectId?: string): BlogGeneratorResult => {
     setLoading(true);
     setError(null);
     setContent("");
+    setMetadata({ title: "", description: "", meta_description: "" });
 
     try {
       const headers = getAuthHeaders();
       const hostOrigin = window.location.origin;
-      
+
       const requestBody = {
         ...form,
         ...(projectId && { projectId }),
       };
-      
-      const response = await fetch(`${hostOrigin}/api/generate-blog`, {
+
+      // Step 1: Generate metadata (title, description, meta_description)
+      const metadataResponse = await fetch(`${hostOrigin}/api/generate-blog-metadata`, {
         method: "POST",
         headers,
         body: JSON.stringify(requestBody),
       });
 
-      if (!response.ok || !response.body) {
-        throw new Error("Failed to generate blog.");
+      if (!metadataResponse.ok) {
+        throw new Error("Failed to generate metadata.");
       }
 
-      const reader = response.body.getReader();
+      const metadataResult = await metadataResponse.json() as BlogMetadata;
+      setMetadata({
+        title: metadataResult.title || "",
+        description: metadataResult.description || "",
+        meta_description: metadataResult.meta_description || "",
+      });
+
+      // Step 2: Generate content (streaming)
+      const contentResponse = await fetch(`${hostOrigin}/api/generate-blog`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!contentResponse.ok || !contentResponse.body) {
+        throw new Error("Failed to generate blog content.");
+      }
+
+      const reader = contentResponse.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
 
@@ -102,5 +134,5 @@ export const useBlogGenerator = (projectId?: string): BlogGeneratorResult => {
     }
   }, [projectId]);
 
-  return { content, loading, error, generateBlog };
+  return { content, metadata, loading, error, generateBlog };
 };

@@ -1,66 +1,34 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { BlogForm, BlogFormValues } from "./BlogForm";
 import { ImageUpload } from "./ImageUpload";
 import { BlogEditor } from "./BlogEditor";
 import { BlogPreview } from "./BlogPreview";
 import { useImageUpload } from "./hooks/useImageUpload";
-import { useBlogGenerator } from "./hooks/useBlogGenerator";
-import { useDraftManager } from "./hooks/useDraftManager";
+import { useBlogGenerator } from "./hooks/UseBlogGenerator";
 import { Card } from "../ui/Card";
-import apiClient from "../../services/apiClient";
-import type { Project } from "../projects/types/project";
 
 interface BlogContentProps {
   projectId?: string;
 }
 
-export function BlogContent({ projectId: initialProjectId }: BlogContentProps) {
-  const [projectId, setProjectId] = useState<string | undefined>(initialProjectId);
-  const [project, setProject] = useState<Project | null>(null);
-  const [loadingProject, setLoadingProject] = useState(false);
+const statusOptions = [
+  { value: "draft", label: "Save as Draft" },
+  { value: "published", label: "Publish" },
+];
+
+export function BlogContent({ projectId }: BlogContentProps) {
   const [form, setForm] = useState<BlogFormValues>({
     topic: "",
     keywords: "",
     tone: "professional",
     audience: "",
   });
+  const [status, setStatus] = useState<"draft" | "published">("draft");
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const { previewImage, fileName, uploadedFile, uploadError, handleFileUpload, removeImage } = useImageUpload();
-  const { content, loading, error, generateBlog } = useBlogGenerator(projectId);
-  const { saveDraft } = useDraftManager();
+  const { previewImage, fileName, uploadError, handleFileUpload, removeImage } = useImageUpload();
+  const { content, metadata, loading, error, generateBlog } = useBlogGenerator(projectId);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const urlProjectId = params.get("projectId");
-
-    if (urlProjectId && urlProjectId !== projectId) {
-      setProjectId(urlProjectId);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!projectId) {
-      setProject(null);
-      return;
-    }
-
-    const fetchProject = async () => {
-      setLoadingProject(true);
-      try {
-        const response = await apiClient.get<Project>(`/api/project/${projectId}`);
-        setProject(response.data);
-      } catch (err) {
-        console.error("Failed to fetch project:", err);
-      } finally {
-        setLoadingProject(false);
-      }
-    };
-
-    fetchProject();
-  }, [projectId]);
-
-  // Merge upload error with generation error
   const displayError = error || uploadError;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -71,7 +39,6 @@ export function BlogContent({ projectId: initialProjectId }: BlogContentProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate all required fields
     if (!form.topic.trim()) {
       setValidationError("Topic is required");
       return;
@@ -93,18 +60,13 @@ export function BlogContent({ projectId: initialProjectId }: BlogContentProps) {
     generateBlog(form);
   };
 
-  const handleSaveDraft = () => {
-    saveDraft({ form, content, fileName, uploadedFile });
-  };
-
-  const handlePublish = () => {
-    console.log("Blog published!");
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStatus(e.target.value as "draft" | "published");
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center size-16 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 mb-4">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,19 +81,6 @@ export function BlogContent({ projectId: initialProjectId }: BlogContentProps) {
           <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-700 mb-2 pb-2">
             AI Blog Generator
           </h1>
-          {project && (
-            <div className="inline-flex items-center px-4 py-2 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                />
-              </svg>
-              {loadingProject ? "Loading..." : project.name}
-            </div>
-          )}
           <p className="text-gray-600 text-lg max-w-2xl mx-auto mt-4">
             Create engaging, SEO-optimized blog content in seconds with AI power
           </p>
@@ -155,13 +104,29 @@ export function BlogContent({ projectId: initialProjectId }: BlogContentProps) {
                 onFileUpload={handleFileUpload}
                 onRemoveImage={removeImage}
               />
+
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Metadata</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="text-sm">
+                    <span className="font-medium text-gray-700">Title:</span> {metadata.title}
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-medium text-gray-700">Description:</span> {metadata.description}
+                  </div>
+                </div>
+                <div className="mt-2 text-sm">
+                  <span className="font-medium text-gray-700">Meta Description:</span> {metadata.meta_description}
+                </div>
+              </div>
+
               <BlogEditor content={content} onContentChange={() => {}} />
               <BlogPreview
                 content={content}
-                uploadedFile={uploadedFile}
-                onSaveDraft={handleSaveDraft}
-                onPublish={handlePublish}
                 showContent={true}
+                status={status}
+                onStatusChange={handleStatusChange}
+                statusOptions={statusOptions}
               />
             </Card>
           )}

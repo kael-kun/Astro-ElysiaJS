@@ -18,7 +18,7 @@ export function BlogListContent() {
   const handleGenerateBlog = () => {
     const projectId = new URLSearchParams(window.location.search).get("projectId");
     if (projectId) {
-      window.location.href = `/dashboard/blogs/generate?projectId=${projectId}`;
+      window.location.href = `/dashboard/blogs/generate?projectId=${projectId}&projectName=${project?.name}`;
     }
   };
 

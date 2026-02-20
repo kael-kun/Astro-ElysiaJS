@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import type { APIRoute } from "astro";
+import { rateLimit } from "elysia-rate-limit";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { openapi } from "@elysiajs/openapi";
 import { UserRoutes, BlogRoutes, GenerateBlogRoutes, ProjectRoutes } from "src/backend";
@@ -10,7 +11,15 @@ const handle: APIRoute = async (ctx) => {
     adapter: CloudflareAdapter,
     aot: false,
     normalize: true,
-  }).use(openapi());
+  }).use(
+    openapi().use(
+      rateLimit({
+        max: 10,
+        duration: 60000,
+        errorResponse: JSON.stringify({ error: "Too many requests" }),
+      }),
+    ),
+  );
   app
     .decorate({
       env: ctx.locals.runtime.env,

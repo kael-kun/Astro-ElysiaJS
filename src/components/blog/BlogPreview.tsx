@@ -1,51 +1,30 @@
 import React, { useState } from "react";
-import { Button, Card, Select } from "../ui";
+import { Button, Card } from "../ui";
 
 interface BlogPreviewProps {
   content: string;
-  uploadedFile: File | null;
-  onSaveDraft: () => void;
-  onPublish: () => void;
   showContent: boolean;
   onSave?: () => void;
   saving?: boolean;
+  status?: "draft" | "published";
+  onStatusChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  statusOptions?: { value: string; label: string }[];
 }
-
-const statusOptions = [
-  { value: "draft", label: "Save as Draft" },
-  { value: "publish", label: "Publish" },
-];
 
 export function BlogPreview({ 
   content, 
-  uploadedFile, 
-  onSaveDraft, 
-  onPublish,
   showContent,
   onSave,
-  saving = false
+  saving = false,
+  status = "draft",
+  onStatusChange,
+  statusOptions = [],
 }: BlogPreviewProps) {
-  const [status, setStatus] = useState<"draft" | "publish">("draft");
-
   if (!showContent) {
     return null;
   }
 
   const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
-
-  const handleSave = () => {
-    if (onSave) {
-      onSave();
-    } else if (status === "draft") {
-      onSaveDraft();
-    } else {
-      onPublish();
-    }
-  };
-
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setStatus(e.target.value as "draft" | "publish");
-  };
 
   return (
     <Card shadow="lg" rounded="xl" className="overflow-hidden">
@@ -55,27 +34,31 @@ export function BlogPreview({
           <div className="text-sm text-gray-600">
             Word count: {wordCount} words
           </div>
-          {uploadedFile && (
-            <div className="text-sm text-gray-600 mt-1">
-              Image attached: {uploadedFile.name}
-            </div>
-          )}
         </div>
 
-        <div className="flex items-center justify-between px-6">
-          <div className="w-48">
-            <Select
-              id="status"
-              name="status"
-              label="Status"
-              value={status}
-              onChange={handleStatusChange}
-              options={statusOptions}
-            />
-          </div>
+        <div className="flex items-center justify-between px-6 pb-6">
+          {onStatusChange && statusOptions.length > 0 ? (
+            <div className="w-48">
+              <select
+                id="status"
+                name="status"
+                value={status}
+                onChange={onStatusChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                {statusOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div />
+          )}
           <Button
             variant="gradient"
-            onClick={handleSave}
+            onClick={onSave}
             loading={saving}
           >
             Save

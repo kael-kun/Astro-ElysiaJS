@@ -11,13 +11,19 @@ const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Request interceptor - add auth token
+// Request interceptor - add auth token and handle FormData
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("auth_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // If data is FormData, let axios set the correct Content-Type with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
+
     return config;
   },
   (error) => Promise.reject(error),

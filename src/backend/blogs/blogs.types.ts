@@ -3,6 +3,8 @@ import type { BlogStatus, BlogLogAction } from "../types/index";
 export interface DbBlog {
   id: string;
   user_id: string;
+  title: string | null;
+  description: string | null;
   content: string | null;
   meta_description: string | null;
   status: BlogStatus;
@@ -22,13 +24,18 @@ export interface DbBlogLog {
 
 export interface CreateBlogInput {
   user_id: string;
+  title?: string;
+  description?: string;
   content: string;
   meta_description?: string;
   status?: BlogStatus;
-  image_url?: string;
+  image?: File | null;
+  project_id?: string;
 }
 
 export interface UpdateBlogInput {
+  title?: string;
+  description?: string;
   content?: string;
   meta_description?: string;
   status?: BlogStatus;
@@ -38,6 +45,8 @@ export interface UpdateBlogInput {
 export interface BlogResponse {
   id: string;
   user_id: string;
+  title: string | null;
+  description: string | null;
   content: string | null;
   meta_description: string | null;
   status: BlogStatus;

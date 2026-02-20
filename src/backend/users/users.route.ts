@@ -1,5 +1,4 @@
 import Elysia, { t } from "elysia";
-import { rateLimit } from "elysia-rate-limit";
 import { typedEnv } from "src/types/elysia";
 import {
   createUser,
@@ -22,13 +21,6 @@ export function UserRoutes() {
   const app = new Elysia();
   app
     .use(typedEnv)
-    .use(
-      rateLimit({
-        max: 100,
-        duration: 60000,
-        errorResponse: JSON.stringify({ error: "Too many requests" }),
-      }),
-    )
     .derive(async ({ env, request }) => {
       const authHeader = request.headers.get("Authorization");
       const authUser = await parseAuthToken(authHeader ?? undefined, env);

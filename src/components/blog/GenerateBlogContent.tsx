@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { BlogForm, BlogFormValues } from "./BlogForm";
 import { ImageUpload } from "./ImageUpload";
 import { BlogEditor } from "./BlogEditor";
 import { BlogPreview } from "./BlogPreview";
 import { useImageUpload } from "./hooks/useImageUpload";
-import { useBlogGenerator } from "./hooks/useBlogGenerator";
-import { useDraftManager } from "./hooks/useDraftManager";
-import { useProjectBlogs } from "./hooks/useProjectBlogs";
+import { useBlogGenerator } from "./hooks/UseBlogGenerator";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
 import apiClient from "../../services/apiClient";
 import { useToast } from "../../hooks/useToast";
 
@@ -17,6 +16,11 @@ interface Project {
   name: string;
   description: string | null;
 }
+
+const statusOptions = [
+  { value: "draft", label: "Save as Draft" },
+  { value: "published", label: "Publish" },
+];
 
 export function GenerateBlogContent() {
   const [projectId, setProjectId] = useState<string | null>(null);
@@ -28,13 +32,37 @@ export function GenerateBlogContent() {
     tone: "professional",
     audience: "",
   });
+  const [status, setStatus] = useState<"draft" | "published">("draft");
   const [validationError, setValidationError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Editable metadata state
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [metaDescription, setMetaDescription] = useState("");
+
   const { success, error: showError } = useToast();
   const { previewImage, fileName, uploadedFile, uploadError, handleFileUpload, removeImage } = useImageUpload();
-  const { content, loading: generating, error: generationError, generateBlog } = useBlogGenerator(projectId || undefined);
-  const { saveDraft } = useDraftManager();
+  const {
+    content,
+    metadata,
+    loading: generating,
+    error: generationError,
+    generateBlog,
+  } = useBlogGenerator(projectId || undefined);
+
+  // Update editable fields when metadata is generated
+  useEffect(() => {
+    if (metadata.title) {
+      setTitle(metadata.title);
+    }
+    if (metadata.description) {
+      setDescription(metadata.description);
+    }
+    if (metadata.meta_description) {
+      setMetaDescription(metadata.meta_description);
+    }
+  }, [metadata]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -63,6 +91,17 @@ export function GenerateBlogContent() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleMetadataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === "title") {
+      setTitle(value);
+    } else if (name === "description") {
+      setDescription(value);
+    } else if (name === "meta_description") {
+      setMetaDescription(value);
+    }
   };
 
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -94,16 +133,22 @@ export function GenerateBlogContent() {
 
     setSaving(true);
     try {
-      await apiClient.post("/api/blog", {
-        user_id: "current",
-        content,
-        meta_description: form.topic,
-        status: "draft",
-        project_id: projectId,
-      });
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("content", content);
+      formData.append("meta_description", metaDescription);
+      formData.append("status", status);
+      formData.append("project_id", projectId);
+
+      if (uploadedFile) {
+        formData.append("image", uploadedFile);
+      }
+
+      await apiClient.post("/api/blog", formData as any);
 
       success("Blog has been saved successfully.");
-      
+
       setTimeout(() => {
         window.location.href = `/dashboard/blogs?projectId=${projectId}`;
       }, 1000);
@@ -115,20 +160,16 @@ export function GenerateBlogContent() {
     }
   };
 
-  const handleSaveDraft = () => {
-    saveDraft({ form, content, fileName, uploadedFile });
-  };
-
-  const handlePublish = () => {
-    console.log("Blog published!");
-  };
-
   const handleBack = () => {
     if (projectId) {
       window.location.href = `/dashboard/blogs?projectId=${projectId}`;
     } else {
       window.location.href = "/dashboard/projects";
     }
+  };
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStatus(e.target.value as "draft" | "published");
   };
 
   return (
@@ -195,15 +236,57 @@ export function GenerateBlogContent() {
                 onFileUpload={handleFileUpload}
                 onRemoveImage={removeImage}
               />
+
+              {/* Generated Metadata Display - Editable */}
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Metadata</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <Input
+                      id="title"
+                      name="title"
+                      type="text"
+                      value={title}
+                      onChange={handleMetadataChange}
+                      placeholder="Enter title"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <Input
+                      id="description"
+                      name="description"
+                      type="text"
+                      value={description}
+                      onChange={handleMetadataChange}
+                      placeholder="Enter description"
+                    />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description (SEO)</label>
+                  <Input
+                    id="meta_description"
+                    name="meta_description"
+                    type="text"
+                    value={metaDescription}
+                    onChange={handleMetadataChange}
+                    placeholder="Enter meta description"
+                  />
+                </div>
+              </div>
+
               <BlogEditor content={content} onContentChange={() => {}} />
+
               <BlogPreview
                 content={content}
-                uploadedFile={uploadedFile}
-                onSaveDraft={handleSaveDraft}
-                onPublish={handlePublish}
                 showContent={true}
                 onSave={handleSaveBlog}
                 saving={saving}
+                status={status}
+                onStatusChange={handleStatusChange}
+                statusOptions={statusOptions}
               />
             </Card>
           )}

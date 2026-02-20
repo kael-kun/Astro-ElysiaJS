@@ -1,8 +1,7 @@
 import Elysia, { t } from "elysia";
-import { rateLimit } from "elysia-rate-limit";
 import { typedEnv } from "src/types/elysia";
 import { parseAuthToken } from "../users/users.controller";
-import { generateBlog } from "./generate-blog.controller";
+import { generateBlog, generateMetadata } from "./generate-blog.controller";
 import type { GenerateBlogInput } from "./generate-blog.types";
 
 function errorResponse(message: string, status: number) {
@@ -16,13 +15,6 @@ export function GenerateBlogRoutes() {
   const app = new Elysia();
   app
     .use(typedEnv)
-    .use(
-      rateLimit({
-        max: 10,
-        duration: 60000,
-        errorResponse: JSON.stringify({ error: "Too many requests" }),
-      }),
-    )
     .derive(async ({ env, request }) => {
       const authHeader = request.headers.get("Authorization");
       const authUser = await parseAuthToken(authHeader ?? undefined, env);
@@ -33,6 +25,34 @@ export function GenerateBlogRoutes() {
         return errorResponse("Unauthorized", 401);
       }
     })
+    .post(
+      "/generate-blog-metadata",
+      async ({ body, env, authUser }) => {
+        if (!authUser) return errorResponse("Unauthorized", 401);
+        try {
+          const blogData: GenerateBlogInput = {
+            topic: body.topic,
+            keywords: body.keywords,
+            tone: body.tone,
+            audience: body.audience,
+          };
+          const metadata = await generateMetadata(blogData, env as Env);
+          return metadata;
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Failed to generate metadata";
+          return errorResponse(message, 500);
+        }
+      },
+      {
+        body: t.Object({
+          topic: t.String({ required: true }),
+          keywords: t.Optional(t.String()),
+          tone: t.String({ required: true }),
+          audience: t.String({ required: true }),
+          projectId: t.String({ required: true }),
+        }),
+      },
+    )
     .post(
       "/generate-blog",
       async ({ body, env, authUser }) => {

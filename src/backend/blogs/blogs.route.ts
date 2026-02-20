@@ -1,5 +1,4 @@
 import Elysia, { t } from "elysia";
-import { rateLimit } from "elysia-rate-limit";
 import { typedEnv } from "src/types/elysia";
 import { parseAuthToken } from "../users/users.controller";
 import {
@@ -24,13 +23,6 @@ export function BlogRoutes() {
   const app = new Elysia();
   app
     .use(typedEnv)
-    .use(
-      rateLimit({
-        max: 100,
-        duration: 60000,
-        errorResponse: JSON.stringify({ error: "Too many requests" }),
-      }),
-    )
     .derive(async ({ env, request }) => {
       const authHeader = request.headers.get("Authorization");
       const authUser = await parseAuthToken(authHeader ?? undefined, env);
@@ -45,29 +37,42 @@ export function BlogRoutes() {
       "/blog",
       async ({ body, env, authUser }) => {
         if (!authUser) return errorResponse("Unauthorized", 401);
+
+        console.log("body.image:", body.image);
+        console.log("body.image type:", typeof body.image);
+        console.log("body.image constructor:", body.image?.constructor?.name);
+
+        const user_id = authUser.id;
         const blogData: CreateBlogInput = {
-          user_id: body.user_id,
+          user_id: user_id,
+          title: body.title,
+          description: body.description,
           content: body.content,
           meta_description: body.meta_description,
           status: (body.status as CreateBlogInput["status"]) || "draft",
-          image_url: body.image_url,
+          image: body.image,
+          project_id: body.project_id,
         };
         try {
           const blog = await createBlog(blogData, env, authUser);
+          console.log("Blog created successfully:", blog.id);
           return blog;
         } catch (err) {
           const message = err instanceof Error ? err.message : "Failed to create blog";
           const status = message.includes("Forbidden") ? 403 : 400;
+          console.error("Error creating blog:", message);
           return errorResponse(message, status);
         }
       },
       {
         body: t.Object({
-          user_id: t.String({ required: true }),
+          title: t.String({ required: true }),
+          description: t.String({ required: true }),
           content: t.String({ required: true }),
           meta_description: t.Optional(t.String()),
-          status: t.Optional(t.String({ enum: ["draft", "published"] })),
-          image_url: t.Optional(t.String()),
+          status: t.String({ enum: ["draft", "published"], required: true }),
+          image: t.Optional(t.File()),
+          project_id: t.String({ required: true }),
         }),
       },
     )
@@ -76,8 +81,9 @@ export function BlogRoutes() {
       const limit = parseInt(query.limit as string) || 50;
       const offset = parseInt(query.offset as string) || 0;
       const status = query.status as string | undefined;
+      const projectId = query.projectId as string | undefined;
       try {
-        const result = await getBlogs(env, authUser, limit, offset, status);
+        const result = await getBlogs(env, authUser, limit, offset, status, projectId);
         return result;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to fetch blogs";
