@@ -106,11 +106,14 @@ export function BlogRoutes() {
       "/blog/:id",
       async ({ params, body, env, authUser }) => {
         if (!authUser) return errorResponse("Unauthorized", 401);
+        console.log(body);
         const blogData: UpdateBlogInput = {
+          title: body.title,
+          description: body.description,
           content: body.content,
           meta_description: body.meta_description,
           status: body.status as UpdateBlogInput["status"],
-          image_url: body.image_url,
+          image_url: "temporary",
         };
         try {
           const blog = await updateBlog(params.id, blogData, env, authUser);
@@ -123,10 +126,12 @@ export function BlogRoutes() {
       },
       {
         body: t.Object({
+          title: t.Optional(t.String()),
+          description: t.Optional(t.String()),
           content: t.Optional(t.String()),
           meta_description: t.Optional(t.String()),
           status: t.Optional(t.String({ enum: ["draft", "published"] })),
-          image_url: t.Optional(t.String()),
+          image: t.Optional(t.File()),
         }),
       },
     )

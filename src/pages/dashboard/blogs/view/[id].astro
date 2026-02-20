@@ -1,0 +1,13 @@
+---
+import { DashboardLayoutWrapper } from "src/components/layout/DashboardLayoutWrapper";
+import { BlogViewContent } from "src/components/blog/BlogViewContent";
+import Layout from "../../../../layouts/Layout.astro";
+
+const { id } = Astro.params;
+---
+
+<Layout>
+  <DashboardLayoutWrapper client:load title="View Blog">
+    <BlogViewContent client:only="react" blogId={id || ""} />
+  </DashboardLayoutWrapper>
+</Layout>

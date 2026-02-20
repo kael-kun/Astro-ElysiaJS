@@ -104,10 +104,15 @@ export class BlogService {
     return { blogs: result.results, total };
   }
 
-  async findByProjectId(projectId: string, limit = 50, offset = 0, status?: string): Promise<{ blogs: DbBlog[]; total: number }> {
+  async findByProjectId(
+    projectId: string,
+    limit = 50,
+    offset = 0,
+    status?: string,
+  ): Promise<{ blogs: DbBlog[]; total: number }> {
     let countQuery = "SELECT COUNT(*) as total FROM blogs WHERE project_id = ?";
     const countParams: (string | number)[] = [projectId];
-    
+
     if (status) {
       countQuery += " AND status = ?";
       countParams.push(status);
@@ -121,7 +126,7 @@ export class BlogService {
 
     let selectQuery = "SELECT * FROM blogs WHERE project_id = ?";
     const selectParams: (string | number)[] = [projectId];
-    
+
     if (status) {
       selectQuery += " AND status = ?";
       selectParams.push(status);
@@ -145,6 +150,8 @@ export class BlogService {
 
     const updated = {
       ...existing,
+      title: data.title ?? existing.title,
+      description: data.description ?? existing.description,
       content: data.content ?? existing.content,
       meta_description: data.meta_description ?? existing.meta_description,
       status: data.status ?? existing.status,
@@ -154,9 +161,18 @@ export class BlogService {
 
     const result = await this.db
       .prepare(
-        `UPDATE blogs SET content = ?, meta_description = ?, status = ?, image_url = ?, updated_at = ? WHERE id = ?`,
+        `UPDATE blogs SET title = ?, description = ?, content = ?, meta_description = ?, status = ?, image_url = ?, updated_at = ? WHERE id = ?`,
       )
-      .bind(updated.content, updated.meta_description, updated.status, updated.image_url, updated.updated_at, id)
+      .bind(
+        updated.title ?? existing.title,
+        updated.description ?? existing.description,
+        updated.content,
+        updated.meta_description,
+        updated.status,
+        updated.image_url,
+        updated.updated_at,
+        id,
+      )
       .run();
 
     if (!result.success) {
@@ -169,7 +185,7 @@ export class BlogService {
   async delete(id: string): Promise<void> {
     // First delete related blog_logs
     await this.db.prepare("DELETE FROM blog_logs WHERE blog_id = ?").bind(id).run();
-    
+
     // Then delete the blog
     const result = await this.db.prepare(`DELETE FROM blogs WHERE id = ?`).bind(id).run();
 

@@ -39,7 +39,7 @@ export interface UpdateBlogInput {
   content?: string;
   meta_description?: string;
   status?: BlogStatus;
-  image_url?: string;
+  image_url?: string | null;
 }
 
 export interface BlogResponse {

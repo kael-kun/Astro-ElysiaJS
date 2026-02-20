@@ -7,6 +7,7 @@ interface UseImageUploadResult {
   uploadError: string | null;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   removeImage: () => void;
+  setPreviewImage: (url: string | null) => void;
 }
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -55,5 +56,6 @@ export const useImageUpload = (): UseImageUploadResult => {
     uploadError: error,
     handleFileUpload,
     removeImage,
+    setPreviewImage,
   };
 };

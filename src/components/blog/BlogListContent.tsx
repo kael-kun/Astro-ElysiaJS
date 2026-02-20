@@ -22,10 +22,6 @@ export function BlogListContent() {
     }
   };
 
-  const handleEditBlog = (blog: Blog) => {
-    window.location.href = `/dashboard/blogs/edit/${blog.id}`;
-  };
-
   const handleDeleteBlog = (blog: Blog) => {
     setBlogToDelete(blog);
   };
@@ -102,9 +98,7 @@ export function BlogListContent() {
         <BlogTable
           blogs={blogs}
           loading={loading}
-          onEdit={handleEditBlog}
           onDelete={handleDeleteBlog}
-          onPublish={handlePublishBlog}
         />
       </Card>
 
