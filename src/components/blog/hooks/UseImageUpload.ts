@@ -2,8 +2,8 @@ import { useState, useCallback } from "react";
 
 interface UseImageUploadResult {
   previewImage: string | null;
-  fileName: string | null;
   uploadedFile: File | null;
+  fileName: string | null;
   uploadError: string | null;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   removeImage: () => void;
