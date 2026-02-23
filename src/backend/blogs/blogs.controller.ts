@@ -211,3 +211,28 @@ export async function getBlogLogs(blogId: string, env: Env, authUser: AuthUser):
   const logs = await blogService.findLogsByBlogId(blogId);
   return logs.map(toBlogLogResponse);
 }
+
+/// store imagein r2
+export const storeImage = async (image: File, env: Env): Promise<string> => {
+  if (!image.type.startsWith("image/")) {
+    throw new Error("Only image files allowed");
+  }
+
+  const maxSize = 5 * 1024 * 1024;
+  if (image.size > maxSize) {
+    throw new Error("Image too large (max 5MB)");
+  }
+
+  const extension = image.name.split(".").pop();
+  const fileName = `blogs/${crypto.randomUUID()}.${extension}`;
+
+  const buffer = await image.arrayBuffer();
+
+  await env.CMS_BUCKET.put(fileName, buffer, {
+    httpMetadata: {
+      contentType: image.type,
+    },
+  });
+
+  return fileName;
+};

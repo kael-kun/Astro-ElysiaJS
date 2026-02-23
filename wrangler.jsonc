@@ -18,4 +18,10 @@
       "database_id": "408f5404-dcfc-45d3-8e90-3b00d0489070",
     },
   ],
+  "r2_buckets": [
+    {
+      "binding": "CMS_BUCKET",
+      "bucket_name": "cms-bucket",
+    },
+  ],
 }

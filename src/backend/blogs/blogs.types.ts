@@ -29,7 +29,7 @@ export interface CreateBlogInput {
   content: string;
   meta_description?: string;
   status?: BlogStatus;
-  image?: File | null;
+  image?: string | null;
   project_id?: string;
 }
 

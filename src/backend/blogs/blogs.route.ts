@@ -9,6 +9,7 @@ import {
   deleteBlog,
   publishBlog,
   getBlogLogs,
+  storeImage,
 } from "./blogs.controller";
 import type { CreateBlogInput, UpdateBlogInput } from "./blogs.types";
 
@@ -37,31 +38,30 @@ export function BlogRoutes() {
       "/blog",
       async ({ body, env, authUser }) => {
         if (!authUser) return errorResponse("Unauthorized", 401);
-
-        console.log("body.image:", body.image);
-        console.log("body.image type:", typeof body.image);
-        console.log("body.image constructor:", body.image?.constructor?.name);
-
-        const user_id = authUser.id;
-        const blogData: CreateBlogInput = {
-          user_id: user_id,
-          title: body.title,
-          description: body.description,
-          content: body.content,
-          meta_description: body.meta_description,
-          status: (body.status as CreateBlogInput["status"]) || "draft",
-          image: body.image,
-          project_id: body.project_id,
-        };
         try {
+          let imagePath: string | undefined;
+
+          if (body.image) {
+            imagePath = await storeImage(body.image, env);
+          }
+
+          console.log(imagePath);
+
+          const blogData: CreateBlogInput = {
+            user_id: authUser.id,
+            title: body.title,
+            description: body.description,
+            content: body.content,
+            meta_description: body.meta_description,
+            status: (body.status as CreateBlogInput["status"]) || "draft",
+            image: imagePath,
+            project_id: body.project_id,
+          };
           const blog = await createBlog(blogData, env, authUser);
-          console.log("Blog created successfully:", blog.id);
           return blog;
         } catch (err) {
           const message = err instanceof Error ? err.message : "Failed to create blog";
-          const status = message.includes("Forbidden") ? 403 : 400;
-          console.error("Error creating blog:", message);
-          return errorResponse(message, status);
+          return errorResponse(message, 400);
         }
       },
       {
@@ -73,6 +73,29 @@ export function BlogRoutes() {
           status: t.String({ enum: ["draft", "published"], required: true }),
           image: t.Optional(t.File()),
           project_id: t.String({ required: true }),
+        }),
+      },
+    )
+    .post(
+      "/blogs",
+      async ({ body, env, authUser }) => {
+        if (!authUser) return errorResponse("Unauthorized", 401);
+        try {
+          let imagePath: string | undefined;
+          console.log(env.CMS_BUCKET);
+          if (body.image) {
+            imagePath = await storeImage(body.image, env);
+          }
+
+          console.log(imagePath);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Failed to publish blog";
+          return errorResponse(message, 400);
+        }
+      },
+      {
+        body: t.Object({
+          image: t.Optional(t.File()),
         }),
       },
     )
