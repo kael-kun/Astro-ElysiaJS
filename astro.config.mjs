@@ -22,10 +22,10 @@ export default defineConfig({
     plugins: [tailwindcss()],
     ssr: {
       external: ["node:buffer"],
+      noExternal: ["react-dom"],
     },
     resolve: {
-      //@ts-ignore
-      alias: import.meta.env.PROD && {
+      alias: {
         "react-dom/server": "react-dom/server.edge",
       },
     },
