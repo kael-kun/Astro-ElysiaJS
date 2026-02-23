@@ -74,18 +74,10 @@ export function BlogListContent() {
     }
   };
 
-  const handleViewExistingBlogs = (projectId: string) => {
-    setSelectedProjectId(projectId);
-    setMode("list");
-    const url = new URL(window.location.href);
-    url.searchParams.set("projectId", projectId);
-    url.searchParams.set("action", "list");
-    window.history.pushState({}, "", url.toString());
-  };
-
   const handleBackToSelect = () => {
     setMode("select");
     setInitialProjectId(null);
+    setSelectedProjectId(null);
     const url = new URL(window.location.href);
     url.searchParams.delete("projectId");
     url.searchParams.delete("action");

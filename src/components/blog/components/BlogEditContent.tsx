@@ -45,7 +45,8 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
   const { success, error: showError } = useToast();
   const { previewImage, fileName, uploadedFile, uploadError, handleFileUpload, removeImage, setPreviewImage } =
     useImageUpload();
-
+  const params = new URLSearchParams(window.location.search);
+  const projectId = params.get("projectId");
   const fetchBlog = useCallback(async () => {
     try {
       setLoading(true);
@@ -112,8 +113,8 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
       success("Blog has been updated successfully.");
 
       setTimeout(() => {
-        if (blog?.project_id) {
-          window.location.href = `/dashboard/blogs?projectId=${blog.project_id}`;
+        if (projectId) {
+          window.location.href = `/dashboard/blogs?projectId=${projectId}&action=list`;
         } else {
           window.location.href = "/dashboard/blogs";
         }
@@ -127,8 +128,8 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
   };
 
   const handleBack = () => {
-    if (blog?.project_id) {
-      window.location.href = `/dashboard/blogs?projectId=${blog.project_id}`;
+    if (projectId) {
+      window.location.href = `/dashboard/blogs?projectId=${projectId}&action=list`;
     } else {
       window.location.href = "/dashboard/blogs";
     }

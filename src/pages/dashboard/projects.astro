@@ -3,6 +3,6 @@ import Layout from '../../layouts/Layout.astro';
 import { ProjectContainer } from "src/components/projects/containers/ProjectContainer";
 ---
 
-<Layout client:load>
+<Layout>
 	<ProjectContainer client:only="react" />
 </Layout>

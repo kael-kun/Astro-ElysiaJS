@@ -5,6 +5,6 @@ import { BlogEditContainer } from "src/components/blog/containers/BlogEditContai
 const { id } = Astro.params;
 ---
 
-<Layout client:load>
+<Layout>
   <BlogEditContainer client:only="react" blogId={id || ""} />
 </Layout>

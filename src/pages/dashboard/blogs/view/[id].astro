@@ -5,6 +5,6 @@ import { BlogViewContainer } from "src/components/blog/containers/BlogViewContai
 const { id } = Astro.params;
 ---
 
-<Layout client:load>
+<Layout>
   <BlogViewContainer client:only="react" blogId={id || ""} />
 </Layout>

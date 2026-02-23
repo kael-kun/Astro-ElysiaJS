@@ -162,7 +162,7 @@ export function GenerateBlogContent() {
 
   const handleBack = () => {
     if (projectId) {
-      window.location.href = `/dashboard/blogs?projectId=${projectId}`;
+      window.location.href = `/dashboard/blogs?projectId=${projectId}&action=list`;
     } else {
       window.location.href = "/dashboard/projects";
     }

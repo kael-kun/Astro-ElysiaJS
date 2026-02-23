@@ -12,12 +12,14 @@ interface BlogTableProps {
 }
 
 export function BlogTable({ blogs, loading, onDelete, showProject, showOwner }: BlogTableProps) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get("projectId");
   const handleView = (blog: Blog) => {
-    window.location.href = `/dashboard/blogs/view/${blog.id}`;
+    window.location.href = `/dashboard/blogs/view/${blog.id}?projectId=${projectId}`;
   };
 
   const handleEdit = (blog: Blog) => {
-    window.location.href = `/dashboard/blogs/edit/${blog.id}`;
+    window.location.href = `/dashboard/blogs/edit/${blog.id}?projectId=${projectId}`;
   };
 
   const formatDateValue = (dateString: string) => {

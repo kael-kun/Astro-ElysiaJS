@@ -44,15 +44,20 @@ export function BlogViewContent({ blogId }: BlogViewContentProps) {
   }, [fetchBlog]);
 
   const handleBack = () => {
-    if (blog?.project_id) {
-      window.location.href = `/dashboard/blogs?projectId=${blog.project_id}`;
+    const params = new URLSearchParams(window.location.search);
+    const projectId = params.get("projectId");
+
+    if (projectId) {
+      window.location.href = `/dashboard/blogs?projectId=${projectId}&action=list`;
     } else {
       window.location.href = "/dashboard/blogs";
     }
   };
 
   const handleEdit = () => {
-    window.location.href = `/dashboard/blogs/edit/${blogId}`;
+    const params = new URLSearchParams(window.location.search);
+    const projectId = params.get("projectId");
+    window.location.href = `/dashboard/blogs/edit/${blogId}?projectId=${projectId}`;
   };
 
   const formatDate = (dateString: string) => {
