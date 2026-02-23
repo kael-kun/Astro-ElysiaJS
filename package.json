@@ -3,7 +3,7 @@
   "version": "1.0.50",
   "scripts": {
     "dev": "astro dev",
-    "check": "astro check",
+    "check": "astro check && tsc --noEmit",
     "build": "astro check && astro build",
     "deploy-staging": "npx wrangler@latest deploy --env=\"staging\"",
     "deploy-production": "npx wrangler@latest deploy --env=\"production\"",
