@@ -37,7 +37,7 @@ CREATE TABLE projects (
   name TEXT NOT NULL,
   description TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE INDEX idx_projects_user_id ON projects(user_id);
@@ -56,7 +56,7 @@ CREATE TABLE blogs (
   image_url TEXT,
   project_id TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE INDEX idx_blogs_user_id ON blogs(user_id);
@@ -73,11 +73,9 @@ CREATE TABLE blog_logs (
   user_id TEXT NOT NULL,
   action TEXT NOT NULL CHECK (action IN ('created', 'updated', 'published', 'deleted')),
   details TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE INDEX idx_blog_logs_blog_id ON blog_logs(blog_id);
 CREATE INDEX idx_blog_logs_user_id ON blog_logs(user_id);
 CREATE INDEX idx_blog_logs_created_at ON blog_logs(created_at DESC);
-
-

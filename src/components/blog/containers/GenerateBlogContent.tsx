@@ -3,7 +3,7 @@ import { BlogForm, BlogFormValues } from "src/components/blog/components/BlogFor
 import { ImageUpload } from "src/components/blog/components/ImageUpload";
 import { BlogEditor } from "src/components/blog/components/BlogEditor";
 import { BlogPreview } from "src/components/blog/components/BlogPreview";
-import { useImageUpload } from "src/components/blog/hooks/useImageUpload";
+import { useImageUpload } from "src/components/blog/hooks/UseImageUpload";
 import { useBlogGenerator } from "src/components/blog/hooks/UseBlogGenerator";
 import { Card } from "src";
 import { Button } from "src";
