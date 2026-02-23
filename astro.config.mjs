@@ -2,6 +2,7 @@ import { defineConfig, envField } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import cloudflare from "@astrojs/cloudflare";
 import react from "@astrojs/react";
+
 export default defineConfig({
   adapter: cloudflare({
     imageService: "compile",
@@ -22,13 +23,14 @@ export default defineConfig({
     plugins: [tailwindcss()],
     ssr: {
       external: ["node:buffer"],
-      noExternal: ["react-dom"],
     },
-    resolve: {
+     resolve: {
       alias: {
-        "react-dom/server": "react-dom/server.edge",
-      },
-    },
+        'react-dom/server.edge': 'react-dom/server'
+      }
+    }
   },
-  integrations: [react()],
+  integrations: [react({
+    ssr: true,
+  })],
 });
