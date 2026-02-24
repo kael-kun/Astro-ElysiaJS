@@ -75,13 +75,7 @@ export function BlogListContent() {
   };
 
   const handleBackToSelect = () => {
-    setMode("select");
-    setInitialProjectId(null);
-    setSelectedProjectId(null);
-    const url = new URL(window.location.href);
-    url.searchParams.delete("projectId");
-    url.searchParams.delete("action");
-    window.history.pushState({}, "", url.toString());
+    window.location.href = "/dashboard/projects";
   };
 
   const handleGenerateBlog = () => {

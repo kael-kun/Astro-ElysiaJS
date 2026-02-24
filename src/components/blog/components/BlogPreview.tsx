@@ -6,6 +6,7 @@ interface BlogPreviewProps {
   showContent: boolean;
   onSave?: () => void;
   saving?: boolean;
+  disabled?: boolean;
   status?: "draft" | "published";
   onStatusChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   statusOptions?: { value: string; label: string }[];
@@ -16,6 +17,7 @@ export function BlogPreview({
   showContent,
   onSave,
   saving = false,
+  disabled = false,
   status = "draft",
   onStatusChange,
   statusOptions = [],
@@ -54,8 +56,8 @@ export function BlogPreview({
           ) : (
             <div />
           )}
-          <Button variant="gradient" onClick={onSave} loading={saving}>
-            Save
+          <Button variant="gradient" onClick={onSave} loading={saving} disabled={disabled}>
+            {disabled ? "Generating..." : "Save"}
           </Button>
         </div>
       </div>

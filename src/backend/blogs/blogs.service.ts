@@ -64,7 +64,7 @@ export class BlogService {
     return result || null;
   }
 
-  async findByUserId(userId: string, limit = 50, offset = 0): Promise<{ blogs: DbBlog[]; total: number }> {
+  async findByUserId(userId: string, limit = 50, offset = 0): Promise<{ blogs: BlogWithRelations[]; total: number }> {
     const countResult = await this.db
       .prepare("SELECT COUNT(*) as total FROM blogs WHERE user_id = ?")
       .bind(userId)
@@ -72,9 +72,9 @@ export class BlogService {
     const total = countResult?.total ?? 0;
 
     const result = await this.db
-      .prepare(`SELECT * FROM blogs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`)
+      .prepare(`SELECT b.*, u.name as user_name FROM blogs b LEFT JOIN users u ON b.user_id = u.id WHERE b.user_id = ? ORDER BY b.created_at DESC LIMIT ? OFFSET ?`)
       .bind(userId, limit, offset)
-      .all<DbBlog>();
+      .all<BlogWithRelations>();
 
     return { blogs: result.results, total };
   }
@@ -117,7 +117,7 @@ export class BlogService {
     limit = 50,
     offset = 0,
     status?: string,
-  ): Promise<{ blogs: DbBlog[]; total: number }> {
+  ): Promise<{ blogs: BlogWithRelations[]; total: number }> {
     let countQuery = "SELECT COUNT(*) as total FROM blogs WHERE project_id = ?";
     const countParams: (string | number)[] = [projectId];
 
@@ -132,20 +132,20 @@ export class BlogService {
       .first<{ total: number }>();
     const total = countResult?.total ?? 0;
 
-    let selectQuery = "SELECT * FROM blogs WHERE project_id = ?";
+    let selectQuery = "SELECT b.*, u.name as user_name FROM blogs b LEFT JOIN users u ON b.user_id = u.id WHERE b.project_id = ?";
     const selectParams: (string | number)[] = [projectId];
 
     if (status) {
-      selectQuery += " AND status = ?";
+      selectQuery += " AND b.status = ?";
       selectParams.push(status);
     }
-    selectQuery += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
+    selectQuery += " ORDER BY b.created_at DESC LIMIT ? OFFSET ?";
     selectParams.push(limit, offset);
 
     const result = await this.db
       .prepare(selectQuery)
       .bind(...selectParams)
-      .all<DbBlog>();
+      .all<BlogWithRelations>();
 
     return { blogs: result.results, total };
   }
