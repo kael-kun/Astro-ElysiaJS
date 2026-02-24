@@ -8,6 +8,7 @@
 -- DROP EXISTING TABLES (for local development)
 -- ---------------------------------------------
 DROP TABLE IF EXISTS blog_logs;
+DROP TABLE IF EXISTS api_keys;
 DROP TABLE IF EXISTS blogs;
 DROP TABLE IF EXISTS projects;
 DROP TABLE IF EXISTS users;
@@ -79,3 +80,21 @@ CREATE TABLE blog_logs (
 CREATE INDEX idx_blog_logs_blog_id ON blog_logs(blog_id);
 CREATE INDEX idx_blog_logs_user_id ON blog_logs(user_id);
 CREATE INDEX idx_blog_logs_created_at ON blog_logs(created_at DESC);
+
+-- ---------------------------------------------
+-- API KEYS TABLE
+-- ---------------------------------------------
+CREATE TABLE api_keys (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  key_hash TEXT NOT NULL,
+  key_prefix TEXT NOT NULL,
+  name TEXT NOT NULL,
+  last_used_at TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  is_active INTEGER NOT NULL DEFAULT 1,
+  FOREIGN KEY (project_id) REFERENCES projects(id)
+);
+
+CREATE INDEX idx_api_keys_project_id ON api_keys(project_id);
+CREATE INDEX idx_api_keys_key_prefix ON api_keys(key_prefix);

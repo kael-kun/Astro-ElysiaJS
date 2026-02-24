@@ -9,6 +9,7 @@ export interface DbBlog {
   meta_description: string | null;
   status: BlogStatus;
   image_url: string | null;
+  project_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -51,6 +52,7 @@ export interface BlogResponse {
   meta_description: string | null;
   status: BlogStatus;
   image_url: string | null;
+  project_id?: string | null;
   createdAt: string;
   updatedAt: string;
   project_name?: string;

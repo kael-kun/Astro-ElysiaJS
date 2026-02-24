@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Button } from "./Button";
+import { X } from "lucide-react";
 
 export interface ModalProps {
   isOpen: boolean;
@@ -64,7 +64,7 @@ export const Modal: React.FC<ModalProps> = ({
 
         {/* Modal panel */}
         <div 
-          className={`relative inline-block w-full ${sizeClasses[size]} transform overflow-hidden rounded-2xl bg-white/90 backdrop-blur-sm border border-white/20 shadow-xl shadow-red-500/10 transition-all ${
+          className={`relative block w-full ${sizeClasses[size]} max-h-[85vh] overflow-hidden transform rounded-2xl bg-white/90 backdrop-blur-sm border border-white/20 shadow-xl shadow-red-500/10 transition-all ${
             isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
           }`}
           role="dialog"
@@ -72,20 +72,17 @@ export const Modal: React.FC<ModalProps> = ({
           onClick={(e) => e.stopPropagation()}
         >
           {showCloseButton && (
-            <Button
-              variant="ghost"
-              size="sm"
+            <button
               onClick={onClose}
-              className="absolute right-4 top-4 z-10"
+              className="absolute right-4 top-4 z-10 p-1 rounded-full hover:bg-gray-200/50 transition-colors"
               aria-label="Close modal"
             >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </Button>
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
           )}
-          
-          {children}
+          <div className="overflow-y-auto max-h-[85vh]">
+            {children}
+          </div>
         </div>
       </div>
     </>

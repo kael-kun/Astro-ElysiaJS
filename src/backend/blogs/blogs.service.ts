@@ -12,12 +12,8 @@ export class BlogService {
   async create(data: CreateBlogInput): Promise<DbBlog> {
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
-
-    // Handle image - convert File to string URL or store directly
     let imageUrl: string | null = null;
     if (data.image) {
-      // For now, we'll just store the file name or a placeholder
-      // In production, you'd upload to R2/storage and get a URL
       imageUrl = typeof data.image === "string" ? data.image : null;
     }
 
@@ -54,6 +50,7 @@ export class BlogService {
       meta_description: data.meta_description || null,
       status: data.status || "draft",
       image_url: imageUrl,
+      project_id: data.project_id || null,
       created_at: now,
       updated_at: now,
     };
@@ -72,7 +69,9 @@ export class BlogService {
     const total = countResult?.total ?? 0;
 
     const result = await this.db
-      .prepare(`SELECT b.*, u.name as user_name FROM blogs b LEFT JOIN users u ON b.user_id = u.id WHERE b.user_id = ? ORDER BY b.created_at DESC LIMIT ? OFFSET ?`)
+      .prepare(
+        `SELECT b.*, u.name as user_name FROM blogs b LEFT JOIN users u ON b.user_id = u.id WHERE b.user_id = ? ORDER BY b.created_at DESC LIMIT ? OFFSET ?`,
+      )
       .bind(userId, limit, offset)
       .all<BlogWithRelations>();
 
@@ -132,7 +131,8 @@ export class BlogService {
       .first<{ total: number }>();
     const total = countResult?.total ?? 0;
 
-    let selectQuery = "SELECT b.*, u.name as user_name FROM blogs b LEFT JOIN users u ON b.user_id = u.id WHERE b.project_id = ?";
+    let selectQuery =
+      "SELECT b.*, u.name as user_name FROM blogs b LEFT JOIN users u ON b.user_id = u.id WHERE b.project_id = ?";
     const selectParams: (string | number)[] = [projectId];
 
     if (status) {

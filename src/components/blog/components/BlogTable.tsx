@@ -108,7 +108,7 @@ export function BlogTable({ blogs, loading, onDelete, showProject, showOwner }: 
         ]
       : []),
     {
-      key: "meta_description",
+      key: "title",
       label: "Title",
       render: (value) => <div className="max-w-xs truncate font-medium text-gray-900">{value || "Untitled Blog"}</div>,
     },

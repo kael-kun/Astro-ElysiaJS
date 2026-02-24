@@ -7,6 +7,7 @@ import { Pagination } from "../../ui/Pagination";
 import { useProjectSelector } from "../hooks/useProjectSelector";
 import { useProjectBlogs } from "../hooks/useProjectBlogs";
 import { useAuth } from "src/providers/AuthProvider";
+import { ApiIntegrationModal } from "../components/ApiIntegrationModal";
 
 function getModeFromURL(): "select" | "list" {
   if (typeof window === "undefined") return "select";
@@ -26,6 +27,7 @@ export function BlogListContent() {
 
   const [mode, setMode] = useState<"select" | "list">("select");
   const [initialProjectId, setInitialProjectId] = useState<string | null>(null);
+  const [isApiModalOpen, setIsApiModalOpen] = useState(false);
 
   const { projects, loading, error, selectedProjectId, setSelectedProjectId } = useProjectSelector();
 
@@ -124,12 +126,23 @@ export function BlogListContent() {
               Blogs for: <span className="text-red-600">{project?.name}</span>
             </h1>
           </div>
-          <Button onClick={handleGenerateBlog} variant="primary">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Generate New Blog
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={() => setIsApiModalOpen(true)} 
+              variant="secondary"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+              API Integration
+            </Button>
+            <Button onClick={handleGenerateBlog} variant="primary">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Generate New Blog
+            </Button>
+          </div>
         </div>
 
         {blogsError && (
@@ -153,6 +166,13 @@ export function BlogListContent() {
           totalItems={total}
           itemsPerPage={10}
           className="mt-4"
+        />
+
+        <ApiIntegrationModal
+          isOpen={isApiModalOpen}
+          onClose={() => setIsApiModalOpen(false)}
+          projectId={initialProjectId || ""}
+          projectName={project?.name || ""}
         />
       </div>
     );
@@ -188,6 +208,13 @@ export function BlogListContent() {
           )}
         </div>
       </Card>
+
+      <ApiIntegrationModal
+        isOpen={isApiModalOpen}
+        onClose={() => setIsApiModalOpen(false)}
+        projectId={selectedProjectId || ""}
+        projectName={projects.find(p => p.id === selectedProjectId)?.name || ""}
+      />
     </div>
   );
 }

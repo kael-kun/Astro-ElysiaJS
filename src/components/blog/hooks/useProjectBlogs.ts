@@ -6,6 +6,7 @@ export interface Blog {
   id: string;
   user_id: string;
   user_name?: string;
+  title: string | null;
   content: string | null;
   meta_description: string | null;
   status: "draft" | "published";
