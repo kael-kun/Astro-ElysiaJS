@@ -3,7 +3,7 @@ import { BlogForm, BlogFormValues } from "./BlogForm";
 import { ImageUpload } from "./ImageUpload";
 import { BlogEditor } from "./BlogEditor";
 import { BlogPreview } from "./BlogPreview";
-import { useImageUpload } from "../hooks/UseImageUpload";
+import { useImageUpload } from "../hooks/useImageUpload";
 import { useBlogGenerator } from "../hooks/UseBlogGenerator";
 import { Card } from "../../ui/Card";
 

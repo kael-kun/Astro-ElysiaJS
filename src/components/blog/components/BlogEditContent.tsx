@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { BlogEditor } from "./BlogEditor";
 import { BlogPreview } from "./BlogPreview";
 import { ImageUpload } from "./ImageUpload";
-import { useImageUpload } from "../hooks/UseImageUpload";
+import { useImageUpload } from "../hooks/useImageUpload";
 import { Card } from "../../ui/Card";
 import { Button } from "../../ui/Button";
 import { Input } from "../../ui/Input";
