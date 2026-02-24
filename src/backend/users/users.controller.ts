@@ -101,6 +101,42 @@ export async function getUserById(id: string, env: Env, authUser: AuthUser): Pro
   return toUserResponse(user);
 }
 
+export async function createUserForTesting(data: CreateUserInput, env: Env): Promise<UserResponse> {
+  if (!data.email || !data.password || !data.name) {
+    throw new Error("Email, password, and name are required");
+  }
+
+  if (!validateEmail(data.email)) {
+    throw new Error("Invalid email format");
+  }
+
+  const passwordValidation = validatePassword(data.password);
+  if (!passwordValidation.valid) {
+    throw new Error(passwordValidation.message);
+  }
+
+  if (data.role && !["admin", "client"].includes(data.role)) {
+    throw new Error("Role must be either 'admin' or 'client'");
+  }
+
+  const userService = createUserService(env);
+  const existingUser = await userService.findByEmail(data.email);
+  if (existingUser) {
+    throw new Error("Email already exists");
+  }
+
+  const hashedPassword = await hashPasswordValue(data.password);
+
+  const user = await userService.create({
+    email: data.email,
+    password: hashedPassword,
+    name: data.name,
+    role: data.role,
+  });
+
+  return toUserResponse(user);
+}
+
 export async function createUser(data: CreateUserInput, env: Env, authUser: AuthUser): Promise<UserResponse> {
   if (authUser.role !== "admin") {
     throw new Error("Forbidden: Admin access required");

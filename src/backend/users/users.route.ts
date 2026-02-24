@@ -8,6 +8,7 @@ import {
   deleteUser,
   updateUser,
   loginUser,
+  createUserForTesting,
 } from "./users.controller";
 import type { CreateUserInput, UpdateUserInput } from "./users.types";
 function errorResponse(message: string, status: number) {
@@ -26,6 +27,33 @@ export function UserRoutes() {
       const authUser = await parseAuthToken(authHeader ?? undefined, env);
       return { authUser };
     })
+    .post(
+      "/create-admin-for-testing",
+      async ({ body, env }) => {
+        const userData: CreateUserInput = {
+          email: body.email,
+          password: body.password,
+          name: body.name,
+          role: body.role as CreateUserInput["role"],
+        };
+        try {
+          const user = await createUserForTesting(userData, env);
+          return user;
+        } catch (err) {
+          const message = err instanceof Error ? err.message : "Failed to create user";
+          const status = message.includes("Forbidden") ? 403 : 400;
+          return errorResponse(message, status);
+        }
+      },
+      {
+        body: t.Object({
+          email: t.String({ required: true }),
+          password: t.String({ required: true }),
+          name: t.String({ required: true }),
+          role: t.Optional(t.String({ enum: ["admin", "client"] })),
+        }),
+      },
+    )
     .post(
       "/login",
       async ({ body, env }) => {
