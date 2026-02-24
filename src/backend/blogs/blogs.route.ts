@@ -42,7 +42,8 @@ export function BlogRoutes() {
           let imagePath: string | undefined;
 
           if (body.image) {
-            imagePath = await storeImage(body.image, env);
+            const imageFileName = await storeImage(body.image, env);
+            imagePath = `${env.IMAGE_PATH}${imageFileName}`;
           }
 
           console.log(imagePath);
@@ -73,29 +74,6 @@ export function BlogRoutes() {
           status: t.String({ enum: ["draft", "published"], required: true }),
           image: t.Optional(t.File()),
           project_id: t.String({ required: true }),
-        }),
-      },
-    )
-    .post(
-      "/blogs",
-      async ({ body, env, authUser }) => {
-        if (!authUser) return errorResponse("Unauthorized", 401);
-        try {
-          let imagePath: string | undefined;
-          console.log(env.CMS_BUCKET);
-          if (body.image) {
-            imagePath = await storeImage(body.image, env);
-          }
-
-          console.log(imagePath);
-        } catch (err) {
-          const message = err instanceof Error ? err.message : "Failed to publish blog";
-          return errorResponse(message, 400);
-        }
-      },
-      {
-        body: t.Object({
-          image: t.Optional(t.File()),
         }),
       },
     )
