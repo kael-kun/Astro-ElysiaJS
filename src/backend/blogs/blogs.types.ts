@@ -50,7 +50,7 @@ export interface UpdateBlogInput {
   content?: string;
   meta_description?: string;
   status?: BlogStatus;
-  image_url?: string | null;
+  image?: File | null;
 }
 
 export interface BlogResponse {

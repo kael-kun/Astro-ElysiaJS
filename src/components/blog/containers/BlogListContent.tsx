@@ -91,7 +91,14 @@ export function BlogListContent() {
   const handleGenerateBlog = () => {
     if (selectedProjectId || initialProjectId) {
       const pid = selectedProjectId || initialProjectId;
-      window.location.href = `/dashboard/blogs/generate?projectId=${pid}&projectName=${encodeURIComponent(project?.name || "")}`;
+      window.location.href = `/dashboard/blogs/generate?projectId=${pid}&projectName=${encodeURIComponent(project?.name || "")}&mode=generate`;
+    }
+  };
+
+  const handleCreateManually = () => {
+    if (selectedProjectId || initialProjectId) {
+      const pid = selectedProjectId || initialProjectId;
+      window.location.href = `/dashboard/blogs/generate?projectId=${pid}&projectName=${encodeURIComponent(project?.name || "")}&mode=manual`;
     }
   };
 
@@ -165,11 +172,17 @@ export function BlogListContent() {
               </svg>
               API Integration
             </Button>
+            <Button onClick={handleCreateManually} variant="outline">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Create Manually
+            </Button>
             <Button onClick={handleGenerateBlog} variant="primary">
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              Generate New Blog
+              Generate with AI
             </Button>
           </div>
         </div>
@@ -228,8 +241,8 @@ export function BlogListContent() {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Generate New Blog</h1>
-          <p className="text-gray-500 mt-1">Select a project to generate a new blog</p>
+          <h1 className="text-2xl font-bold text-gray-900">Create New Blog</h1>
+          <p className="text-gray-500 mt-1">Select a project and choose how to create your blog</p>
         </div>
       </div>
 

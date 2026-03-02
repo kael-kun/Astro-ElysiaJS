@@ -114,7 +114,7 @@ export function BlogRoutes() {
           content: body.content,
           meta_description: body.meta_description,
           status: body.status as UpdateBlogInput["status"],
-          image_url: "temporary",
+          image: body.image,
         };
         try {
           const blog = await updateBlog(params.id, blogData, env, authUser);

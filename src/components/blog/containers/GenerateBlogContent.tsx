@@ -22,7 +22,17 @@ const statusOptions = [
   { value: "published", label: "Publish" },
 ];
 
+type BlogMode = "manual" | "generate";
+
+function getModeFromURL(): BlogMode {
+  if (typeof window === "undefined") return "manual";
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get("mode");
+  return mode === "generate" ? "generate" : "manual";
+}
+
 export function GenerateBlogContent() {
+  const [mode, setMode] = useState<BlogMode>("manual");
   const [projectId, setProjectId] = useState<string | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [loadingProject, setLoadingProject] = useState(false);
@@ -40,6 +50,7 @@ export function GenerateBlogContent() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
+  const [manualContent, setManualContent] = useState("");
 
   const { error: showError, success: showSuccess } = useToastContext();
   const { previewImage, fileName, uploadedFile, uploadError, handleFileUpload, removeImage } = useImageUpload();
@@ -80,6 +91,9 @@ export function GenerateBlogContent() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlProjectId = params.get("projectId");
+    const urlMode = getModeFromURL();
+
+    setMode(urlMode);
 
     if (urlProjectId) {
       setProjectId(urlProjectId);
@@ -173,6 +187,48 @@ export function GenerateBlogContent() {
     }
   };
 
+  const handleSaveManualBlog = async () => {
+    if (!projectId) return;
+
+    if (!title.trim()) {
+      showError("Title is required");
+      return;
+    }
+
+    if (!manualContent.trim()) {
+      showError("Content is required");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("description", description);
+      formData.append("content", manualContent);
+      formData.append("meta_description", metaDescription);
+      formData.append("status", status);
+      formData.append("project_id", projectId);
+
+      if (uploadedFile) {
+        formData.append("image", uploadedFile);
+      }
+
+      await apiClient.post("/api/blog", formData as any);
+
+      showSuccess("Blog has been saved successfully.");
+
+      setTimeout(() => {
+        window.location.href = `/dashboard/blogs?projectId=${projectId}&action=list`;
+      }, 1000);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to save blog";
+      showError(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleBack = () => {
     if (projectId) {
       window.location.href = `/dashboard/blogs?projectId=${projectId}&action=list`;
@@ -185,11 +241,52 @@ export function GenerateBlogContent() {
     setStatus(e.target.value as "draft" | "published");
   };
 
+  const handleModeChange = (newMode: BlogMode) => {
+    if (!projectId) return;
+    const projectName = project?.name || "";
+    window.location.href = `/dashboard/blogs/generate?projectId=${projectId}&projectName=${encodeURIComponent(projectName)}&mode=${newMode}`;
+  };
+
+  const renderModeToggle = () => (
+    <div className="flex justify-center mb-6">
+      <div className="inline-flex bg-gray-200 rounded-lg p-1">
+        <button
+          type="button"
+          onClick={() => handleModeChange("manual")}
+          className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+            mode === "manual"
+              ? "bg-white text-red-600 shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Create Manually
+        </button>
+        <button
+          type="button"
+          onClick={() => handleModeChange("generate")}
+          className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+            mode === "generate"
+              ? "bg-white text-red-600 shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Generate with AI
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-6">
           {/* Back Button */}
           <div className="flex justify-start mb-4">
             <Button variant="ghost" onClick={handleBack}>
@@ -200,18 +297,21 @@ export function GenerateBlogContent() {
             </Button>
           </div>
 
+          {renderModeToggle()}
+
           <div className="inline-flex items-center justify-center size-16 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
+            {mode === "manual" ? (
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            ) : (
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            )}
           </div>
           <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-700 mb-2 pb-2">
-            AI Blog Generator
+            {mode === "manual" ? "Create Blog Manually" : "AI Blog Generator"}
           </h1>
           {project && (
             <div className="inline-flex items-center px-4 py-2 bg-red-100 text-red-800 rounded-full text-sm font-medium">
@@ -227,99 +327,173 @@ export function GenerateBlogContent() {
             </div>
           )}
           <p className="text-gray-600 text-lg max-w-2xl mx-auto mt-4">
-            Create engaging, SEO-optimized blog content in seconds with AI power
+            {mode === "manual" 
+              ? "Create your blog post by writing content manually" 
+              : "Create engaging, SEO-optimized blog content in seconds with AI power"}
           </p>
         </div>
 
         <div className="flex flex-col gap-8">
-          <BlogForm
-            form={form}
-            loading={generating}
-            error={displayError}
-            validationError={validationError}
-            onChange={handleChange}
-            onSubmit={handleSubmit}
-          />
+          {mode === "manual" ? (
+            <Card shadow="lg" rounded="xl">
+              <ImageUpload
+                previewImage={previewImage}
+                fileName={fileName}
+                onFileUpload={handleFileUpload}
+                onRemoveImage={removeImage}
+              />
 
-          {/* Always render this wrapper for scroll target */}
-          <div ref={generatedContentRef}>
-            {content ? (
-              <Card shadow="lg" rounded="xl">
-                <ImageUpload
-                  previewImage={previewImage}
-                  fileName={fileName}
-                  onFileUpload={handleFileUpload}
-                  onRemoveImage={removeImage}
-                />
-
-                {/* Generated Metadata Display - Editable */}
-                <div className="p-6 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Metadata</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                      <Input
-                        id="title"
-                        name="title"
-                        type="text"
-                        value={title}
-                        onChange={handleMetadataChange}
-                        placeholder="Enter title"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                      <Input
-                        id="description"
-                        name="description"
-                        type="text"
-                        value={description}
-                        onChange={handleMetadataChange}
-                        placeholder="Enter description"
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description (SEO)</label>
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Metadata</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
                     <Input
-                      id="meta_description"
-                      name="meta_description"
+                      id="title"
+                      name="title"
                       type="text"
-                      value={metaDescription}
+                      value={title}
                       onChange={handleMetadataChange}
-                      placeholder="Enter meta description"
+                      placeholder="Enter blog title"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <Input
+                      id="description"
+                      name="description"
+                      type="text"
+                      value={description}
+                      onChange={handleMetadataChange}
+                      placeholder="Enter short description"
                     />
                   </div>
                 </div>
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description (SEO)</label>
+                  <Input
+                    id="meta_description"
+                    name="meta_description"
+                    type="text"
+                    value={metaDescription}
+                    onChange={handleMetadataChange}
+                    placeholder="Enter meta description for SEO"
+                  />
+                </div>
+              </div>
 
-                <BlogEditor content={content} onContentChange={() => {}} />
-
-                {/* Show loading indicator while generating */}
-                {generating && (
-                  <div className="p-4 border-t border-gray-200 bg-gray-50">
-                    <div className="flex items-center justify-center gap-2 text-gray-600">
-                      <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Generating content...</span>
-                    </div>
-                  </div>
-                )}
-
-                <BlogPreview
-                  content={content}
-                  showContent={true}
-                  onSave={handleSaveBlog}
-                  saving={saving}
-                  disabled={generating}
-                  status={status}
-                  onStatusChange={handleStatusChange}
-                  statusOptions={statusOptions}
+              <div className="p-6 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Content *</h3>
+                <BlogEditor 
+                  content={manualContent} 
+                  onContentChange={setManualContent} 
+                  height="500px" 
                 />
-              </Card>
-            ) : null}
-          </div>
+              </div>
+
+              <BlogPreview
+                content={manualContent}
+                showContent={true}
+                onSave={handleSaveManualBlog}
+                saving={saving}
+                status={status}
+                onStatusChange={handleStatusChange}
+                statusOptions={statusOptions}
+              />
+            </Card>
+          ) : (
+            <>
+              <BlogForm
+                form={form}
+                loading={generating}
+                error={displayError}
+                validationError={validationError}
+                onChange={handleChange}
+                onSubmit={handleSubmit}
+              />
+
+              {/* Always render this wrapper for scroll target */}
+              <div ref={generatedContentRef}>
+                {content ? (
+                  <Card shadow="lg" rounded="xl">
+                    <ImageUpload
+                      previewImage={previewImage}
+                      fileName={fileName}
+                      onFileUpload={handleFileUpload}
+                      onRemoveImage={removeImage}
+                    />
+
+                    {/* Generated Metadata Display - Editable */}
+                    <div className="p-6 border-b border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Metadata</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                          <Input
+                            id="title"
+                            name="title"
+                            type="text"
+                            value={title}
+                            onChange={handleMetadataChange}
+                            placeholder="Enter title"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                          <Input
+                            id="description"
+                            name="description"
+                            type="text"
+                            value={description}
+                            onChange={handleMetadataChange}
+                            placeholder="Enter description"
+                          />
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description (SEO)</label>
+                        <Input
+                          id="meta_description"
+                          name="meta_description"
+                          type="text"
+                          value={metaDescription}
+                          onChange={handleMetadataChange}
+                          placeholder="Enter meta description"
+                        />
+                      </div>
+                    </div>
+
+                    <BlogEditor content={content} onContentChange={() => {}} />
+
+                    {/* Show loading indicator while generating */}
+                    {generating && (
+                      <div className="p-4 border-t border-gray-200 bg-gray-50">
+                        <div className="flex items-center justify-center gap-2 text-gray-600">
+                          <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>Generating content...</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <BlogPreview
+                      content={content}
+                      showContent={true}
+                      onSave={handleSaveBlog}
+                      saving={saving}
+                      disabled={generating}
+                      status={status}
+                      onStatusChange={handleStatusChange}
+                      statusOptions={statusOptions}
+                    />
+                  </Card>
+                ) : null}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
