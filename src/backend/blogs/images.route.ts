@@ -7,7 +7,7 @@ export const blogImagesRoute = new Elysia({ prefix: "/api" }).use(typedEnv).get(
     const { fileName } = params;
 
     try {
-      const object = await env.CMS_BUCKET.get(fileName);
+      const object = await env.CMS_BUCKET.get(`blogs/${fileName}`);
 
       if (!object) {
         return new Response("Image not found", { status: 404 });
