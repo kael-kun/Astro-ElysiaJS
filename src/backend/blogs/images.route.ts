@@ -1,7 +1,7 @@
 import Elysia, { t } from "elysia";
 import { typedEnv } from "src/types/elysia";
 
-export const blogImagesRoute = new Elysia({ prefix: "/api" }).use(typedEnv).get(
+export const blogImagesRoute = new Elysia().use(typedEnv).get(
   "/blogs/images/:fileName",
   async ({ params, env }) => {
     const { fileName } = params;
