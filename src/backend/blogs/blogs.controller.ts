@@ -251,9 +251,7 @@ export async function deleteImageFromR2(imageUrl: string, env: Env): Promise<voi
   if (!imageUrl) return;
 
   const baseUrl = (env as any).IMAGE_PATH || "";
-  const path = imageUrl.startsWith(baseUrl)
-    ? imageUrl.substring(baseUrl.length)
-    : imageUrl;
+  const path = imageUrl.startsWith(baseUrl) ? imageUrl.substring(baseUrl.length) : imageUrl;
 
   try {
     await env.CMS_BUCKET.delete(path);

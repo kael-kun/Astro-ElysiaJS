@@ -4,6 +4,7 @@ import { rateLimit } from "elysia-rate-limit";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { openapi } from "@elysiajs/openapi";
 import { UserRoutes, BlogRoutes, GenerateBlogRoutes, ProjectRoutes, ApiKeyRoutes, PublicBlogRoutes } from "src/backend";
+import { blogImagesRoute } from "src/backend/blogs/images.route";
 
 const handle: APIRoute = async (ctx) => {
   const app = new Elysia({
@@ -26,6 +27,7 @@ const handle: APIRoute = async (ctx) => {
       urlData: ctx.url,
       astroCookies: ctx.cookies,
     })
+    .use(blogImagesRoute)
     .use(GenerateBlogRoutes())
     .use(UserRoutes())
     .use(BlogRoutes())
