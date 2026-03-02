@@ -36,12 +36,12 @@ export function BlogRoutes() {
     })
     .post(
       "/blog",
-      async ({ body, env, authUser }) => {
+      async ({ body, env, authUser, request }) => {
         if (!authUser) return errorResponse("Unauthorized", 401);
         try {
           let imagePath: string | undefined;
           // get origin
-          const origin = window.location.origin;
+          const origin = new URL(request.url).origin;
           if (body.image) {
             const imageFileName = await storeImage(body.image, env);
             imagePath = `${origin}/api/blogs/images/${imageFileName}`;
