@@ -51,6 +51,7 @@ export interface UpdateBlogInput {
   meta_description?: string;
   status?: BlogStatus;
   image?: File | null;
+  image_url?: string | null;
 }
 
 export interface BlogResponse {
