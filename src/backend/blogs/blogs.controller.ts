@@ -18,6 +18,7 @@ function toBlogResponse(blog: {
   meta_description: string | null;
   status: string;
   image_url: string | null;
+  view_count?: number;
   created_at: string;
   updated_at: string;
   project_name?: string;
@@ -32,6 +33,7 @@ function toBlogResponse(blog: {
     meta_description: blog.meta_description,
     status: blog.status as BlogResponse["status"],
     image_url: blog.image_url,
+    view_count: blog.view_count,
     createdAt: blog.created_at,
     updatedAt: blog.updated_at,
     project_name: blog.project_name,
@@ -93,8 +95,8 @@ export async function getBlogById(id: string, env: Env, authUser: AuthUser): Pro
 export async function getBlogs(
   env: Env,
   authUser: AuthUser,
-  limit = 50,
-  offset = 0,
+  limit = 10,
+  page = 1,
   status?: string,
   projectId?: string,
 ): Promise<PaginatedBlogsResponse> {
@@ -102,22 +104,18 @@ export async function getBlogs(
 
   let result;
   if (projectId) {
-    // Filter by project
-    result = await blogService.findByProjectId(projectId, limit, offset, status);
+    result = await blogService.findByProjectId(projectId, limit, page, status);
   } else if (authUser.role === "admin") {
-    result = await blogService.findAll(limit, offset, status);
+    result = await blogService.findAll(limit, page, status);
   } else {
-    result = await blogService.findByUserId(authUser.id, limit, offset);
+    result = await blogService.findByUserId(authUser.id, limit, page);
   }
-
-  const page = Math.floor(offset / limit) + 1;
-  const totalPages = Math.ceil(result.total / limit);
 
   return {
     results: result.blogs.map(toBlogResponse),
     total: result.total,
-    page,
-    totalPages,
+    page: result.page,
+    totalPages: result.totalPages,
   };
 }
 
@@ -138,7 +136,13 @@ export async function updateBlog(
     throw new Error("Forbidden: Cannot update other users' blogs");
   }
 
+  const oldImageUrl = existing.image_url;
+
   const blog = await blogService.update(id, data);
+
+  if (data.image_url && data.image_url !== oldImageUrl && oldImageUrl) {
+    await deleteImageFromR2(oldImageUrl, env);
+  }
 
   await blogService.createLog({
     blog_id: id,
@@ -162,7 +166,13 @@ export async function deleteBlog(id: string, env: Env, authUser: AuthUser): Prom
     throw new Error("Forbidden: Cannot delete other users' blogs");
   }
 
+  const imageUrl = existing.image_url;
+
   await blogService.delete(id);
+
+  if (imageUrl) {
+    await deleteImageFromR2(imageUrl, env);
+  }
 
   await blogService.createLog({
     blog_id: id,
@@ -236,3 +246,35 @@ export const storeImage = async (image: File, env: Env): Promise<string> => {
 
   return fileName;
 };
+
+export async function deleteImageFromR2(imageUrl: string, env: Env): Promise<void> {
+  if (!imageUrl) return;
+
+  const baseUrl = (env as any).IMAGE_PATH || "";
+  const path = imageUrl.startsWith(baseUrl)
+    ? imageUrl.substring(baseUrl.length)
+    : imageUrl;
+
+  try {
+    await env.CMS_BUCKET.delete(path);
+  } catch (err) {
+    console.error("Failed to delete image from R2:", err);
+  }
+}
+
+export async function recordBlogView(
+  blogId: string,
+  env: Env,
+  ipHash?: string,
+  userAgent?: string,
+  referer?: string,
+): Promise<void> {
+  const blogService = createBlogService(env);
+  const blog = await blogService.findById(blogId);
+
+  if (!blog || blog.status !== "published") {
+    return;
+  }
+
+  await blogService.recordView(blogId, ipHash, userAgent, referer);
+}

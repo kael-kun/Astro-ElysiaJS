@@ -7,7 +7,7 @@ import { Card } from "../../ui/Card";
 import { Button } from "../../ui/Button";
 import { Input } from "../../ui/Input";
 import apiClient from "src/services/apiClient";
-import { useToast } from "src/";
+import { useToastContext } from "src/providers/ToastProvider";
 
 interface BlogData {
   id: string;
@@ -42,7 +42,7 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
   const [content, setContent] = useState("");
   const [status, setStatus] = useState<"draft" | "published">("draft");
 
-  const { success, error: showError } = useToast();
+  const { error: showError, success: showSuccess } = useToastContext();
   const { previewImage, fileName, uploadedFile, uploadError, handleFileUpload, removeImage, setPreviewImage } =
     useImageUpload();
   const params = new URLSearchParams(window.location.search);
@@ -110,7 +110,7 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
 
       await apiClient.put(`/api/blog/${blogId}`, formData as any);
 
-      success("Blog has been updated successfully.");
+      showSuccess("Blog has been updated successfully.");
 
       setTimeout(() => {
         if (projectId) {

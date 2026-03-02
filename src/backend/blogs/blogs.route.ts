@@ -79,12 +79,12 @@ export function BlogRoutes() {
     )
     .get("/blogs", async ({ query, env, authUser }) => {
       if (!authUser) return errorResponse("Unauthorized", 401);
-      const limit = parseInt(query.limit as string) || 50;
-      const offset = parseInt(query.offset as string) || 0;
+      const limit = parseInt(query.limit as string) || 10;
+      const page = parseInt(query.page as string) || 1;
       const status = query.status as string | undefined;
       const projectId = query.projectId as string | undefined;
       try {
-        const result = await getBlogs(env, authUser, limit, offset, status, projectId);
+        const result = await getBlogs(env, authUser, limit, page, status, projectId);
         return result;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to fetch blogs";

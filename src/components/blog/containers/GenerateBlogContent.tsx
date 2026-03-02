@@ -9,7 +9,7 @@ import { Card } from "src";
 import { Button } from "src";
 import { Input } from "src";
 import apiClient from "src/services/apiClient";
-import { useToast } from "src/hooks/useToast";
+import { useToastContext } from "src/providers/ToastProvider";
 
 interface Project {
   id: string;
@@ -41,7 +41,7 @@ export function GenerateBlogContent() {
   const [description, setDescription] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
 
-  const { success, error: showError } = useToast();
+  const { error: showError, success: showSuccess } = useToastContext();
   const { previewImage, fileName, uploadedFile, uploadError, handleFileUpload, removeImage } = useImageUpload();
   const {
     content,
@@ -160,7 +160,7 @@ export function GenerateBlogContent() {
 
       await apiClient.post("/api/blog", formData as any);
 
-      success("Blog has been saved successfully.");
+      showSuccess("Blog has been saved successfully.");
 
       setTimeout(() => {
         window.location.href = `/dashboard/blogs?projectId=${projectId}&action=list`;

@@ -81,14 +81,10 @@ export class ProjectService {
     return { projects: result.results, total, page, totalPages };
   }
 
-  async update(id: string, userId: string, data: UpdateProjectInput): Promise<DbProject> {
+  async update(id: string, data: UpdateProjectInput): Promise<DbProject> {
     const existing = await this.findById(id);
     if (!existing) {
       throw new Error("Project not found");
-    }
-
-    if (existing.user_id !== userId) {
-      throw new Error("Forbidden: Cannot update other users' projects");
     }
 
     const updated = {
@@ -109,14 +105,10 @@ export class ProjectService {
     return { ...existing, ...updated };
   }
 
-  async delete(id: string, userId: string): Promise<void> {
+  async delete(id: string): Promise<void> {
     const existing = await this.findById(id);
     if (!existing) {
       throw new Error("Project not found");
-    }
-
-    if (existing.user_id !== userId) {
-      throw new Error("Forbidden: Cannot delete other users' projects");
     }
 
     const result = await this.db.prepare(`DELETE FROM projects WHERE id = ?`).bind(id).run();

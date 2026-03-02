@@ -2,6 +2,7 @@ import Elysia from "elysia";
 import { typedEnv } from "src/types/elysia";
 import { verifyApiKey } from "./api-keys.controller";
 import { createBlogService } from "../blogs/blogs.service";
+import { recordBlogView } from "../blogs/blogs.controller";
 import type { BlogResponse } from "../blogs/blogs.types";
 
 interface RateLimitStore {
@@ -40,6 +41,14 @@ function errorResponse(message: string, status: number) {
     status,
     headers: { "Content-Type": "application/json" },
   });
+}
+
+async function hashIp(ip: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(ip);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 function toBlogResponse(blog: {
@@ -81,7 +90,10 @@ export function PublicBlogRoutes() {
       const apiKeyHeader = request.headers.get("X-API-Key");
       let apiKeyId: string | null = null;
       let isValid = false;
-      console.log(apiKeyHeader);
+      const ip = request.headers.get("CF-Connecting-IP") || request.headers.get("X-Forwarded-For") || "unknown";
+      const userAgent = request.headers.get("User-Agent") || undefined;
+      const referer = request.headers.get("Referer") || undefined;
+      
       if (apiKeyHeader) {
         const result = await verifyApiKey(apiKeyHeader, env);
         if (result.valid && result.apiKey) {
@@ -90,7 +102,7 @@ export function PublicBlogRoutes() {
         }
       }
 
-      return { apiKeyId, isValid, apiKeyHeader };
+      return { apiKeyId, isValid, apiKeyHeader, ip, userAgent, referer };
     })
     .onBeforeHandle(({ isValid, apiKeyId }) => {
       if (!isValid || !apiKeyId) {
@@ -106,13 +118,10 @@ export function PublicBlogRoutes() {
 
       const limit = parseInt(query.limit as string) || 10;
       const page = parseInt(query.page as string) || 1;
-      const offset = (page - 1) * limit;
 
       try {
         const blogService = createBlogService(env);
-        const result = await blogService.findByProjectId(params.projectId, limit, offset, "published");
-        console.log("here");
-        console.log(result);
+        const result = await blogService.findByProjectId(params.projectId, limit, page, "published");
         return {
           results: result.blogs.map((blog) => ({
             blog_id: blog.id,
@@ -121,19 +130,20 @@ export function PublicBlogRoutes() {
             meta_description: blog.meta_description,
             image_url: blog.image_url,
             status: blog.status,
+            view_count: blog.view_count,
             createdAt: blog.created_at,
             updatedAt: blog.updated_at,
           })),
           total: result.total,
           page,
-          totalPages: Math.ceil(result.total / limit),
+          totalPages: result.totalPages,
         };
       } catch (err) {
         console.error("Error fetching blogs:", err);
         return errorResponse("Failed to fetch blogs", 500);
       }
     })
-    .get("/public/:projectId/blogs/:id", async ({ params, env, apiKeyId }) => {
+    .get("/public/:projectId/blogs/:id", async ({ params, env, apiKeyId, ip, userAgent, referer }) => {
       if (!apiKeyId) return errorResponse("Invalid API key", 401);
 
       if (!checkRateLimit(apiKeyId)) {
@@ -156,6 +166,9 @@ export function PublicBlogRoutes() {
           return errorResponse("Blog not found", 404);
         }
 
+        const ipHash = await hashIp(ip);
+        recordBlogView(params.id, env, ipHash, userAgent, referer);
+
         return {
           blog_id: blog.id,
           title: blog.title,
@@ -164,6 +177,7 @@ export function PublicBlogRoutes() {
           meta_description: blog.meta_description,
           image_url: blog.image_url,
           status: blog.status,
+          view_count: blog.view_count,
           createdAt: blog.created_at,
           updatedAt: blog.updated_at,
         };

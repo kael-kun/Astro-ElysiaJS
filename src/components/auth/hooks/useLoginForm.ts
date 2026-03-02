@@ -56,7 +56,7 @@ export function useLoginForm(): UseLoginFormReturn {
         const { token, user } = response.data;
 
         setAuth(user, token);
-        window.location.href = "/dashboard";
+        window.location.href = "/dashboard/overview";
 
         return true;
       } catch (err) {

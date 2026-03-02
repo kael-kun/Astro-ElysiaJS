@@ -5,7 +5,7 @@ import { UserTableSection } from "./UserTableSection";
 import { UserModal } from "./UserModal";
 import { ConfirmModal } from "src/components/ui/ConfirmModal";
 import { useUsers } from "src/components/users/hooks/useUsers";
-import { useToast } from "src/hooks/useToast";
+import { useToastContext } from "src/providers/ToastProvider";
 import type { User } from "src/components/users/types/user";
 
 export function UsersManagement() {
@@ -30,7 +30,7 @@ export function UsersManagement() {
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
 
-  const { success, error: showError } = useToast();
+  const { error: showError, success: showSuccess } = useToastContext();
 
   const handleAddUser = () => {
     setEditingUser(null);
@@ -55,7 +55,7 @@ export function UsersManagement() {
     try {
       setModalLoading(true);
       await deleteUser(userToDelete.id);
-      success(`User "${userToDelete.name}" has been deleted successfully.`);
+      showSuccess(`User "${userToDelete.name}" has been deleted successfully.`);
       setShowDeleteConfirm(false);
       setUserToDelete(null);
     } catch (err: any) {
@@ -72,10 +72,10 @@ export function UsersManagement() {
 
       if (editingUser) {
         await updateUser(editingUser.id, data);
-        success(`User "${data.name}" has been updated successfully.`);
+        showSuccess(`User "${data.name}" has been updated successfully.`);
       } else {
         await createUser(data);
-        success(`User "${data.name}" has been created successfully.`);
+        showSuccess(`User "${data.name}" has been created successfully.`);
       }
 
       setIsModalOpen(false);

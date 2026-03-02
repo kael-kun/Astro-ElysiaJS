@@ -8,6 +8,7 @@ interface UseProjectsResult {
   loading: boolean;
   error: string | null;
   page: number;
+  limit: number;
   totalPages: number;
   totalProjects: number;
   itemsPerPage: number;
@@ -16,6 +17,7 @@ interface UseProjectsResult {
   updateProject: (data: UpdateProjectInput & { id: string }) => Promise<Project>;
   deleteProject: (projectId: string) => Promise<void>;
   setPage: (page: number) => void;
+  setLimit: (limit: number) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -28,10 +30,19 @@ function getInitialPageFromURL(): number {
   return isNaN(parsed) || parsed < 1 ? 1 : parsed;
 }
 
-function updateURLWithPage(page: number): void {
+function getInitialLimitFromURL(): number {
+  if (typeof window === "undefined") return ITEMS_PER_PAGE;
+  const params = new URLSearchParams(window.location.search);
+  const limitParam = params.get("limit");
+  const parsed = parseInt(limitParam || String(ITEMS_PER_PAGE), 10);
+  return isNaN(parsed) || parsed < 1 ? ITEMS_PER_PAGE : parsed;
+}
+
+function updateURLWithPage(page: number, limit: number): void {
   if (typeof window === "undefined") return;
   const url = new URL(window.location.href);
   url.searchParams.set("page", String(page));
+  url.searchParams.set("limit", String(limit));
   window.history.pushState({}, "", url.toString());
 }
 
@@ -40,6 +51,7 @@ export const useProjects = (): UseProjectsResult => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPageState] = useState(getInitialPageFromURL);
+  const [limit, setLimitState] = useState(getInitialLimitFromURL);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProjects, setTotalProjects] = useState(0);
 
@@ -54,7 +66,7 @@ export const useProjects = (): UseProjectsResult => {
           total: number;
           page: number;
           totalPages: number;
-        }>(`/api/projects?page=${pageNumber}&limit=${ITEMS_PER_PAGE}`);
+        }>(`/api/projects?page=${pageNumber}&limit=${limit}`);
 
         setProjects(response.data.projects);
         setTotalProjects(response.data.total);
@@ -68,13 +80,20 @@ export const useProjects = (): UseProjectsResult => {
         setLoading(false);
       }
     },
-    [page],
+    [page, limit],
   );
 
   const handleSetPage = useCallback((newPage: number) => {
     if (newPage < 1) return;
     setPageState(newPage);
-    updateURLWithPage(newPage);
+    updateURLWithPage(newPage, limit);
+  }, [limit]);
+
+  const handleSetLimit = useCallback((newLimit: number) => {
+    if (newLimit < 1) return;
+    setLimitState(newLimit);
+    setPageState(1);
+    updateURLWithPage(1, newLimit);
   }, []);
 
   const createProject = useCallback(
@@ -131,13 +150,15 @@ export const useProjects = (): UseProjectsResult => {
     loading,
     error,
     page,
+    limit,
     totalPages,
     totalProjects,
-    itemsPerPage: ITEMS_PER_PAGE,
+    itemsPerPage: limit,
     fetchProjects,
     createProject,
     updateProject,
     deleteProject,
     setPage: handleSetPage,
+    setLimit: handleSetLimit,
   };
 };

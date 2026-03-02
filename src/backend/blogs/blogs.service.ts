@@ -1,5 +1,5 @@
 import type { D1Database } from "@cloudflare/workers-types";
-import type { DbBlog, CreateBlogInput, UpdateBlogInput, DbBlogLog, CreateBlogLogInput } from "./blogs.types";
+import type { DbBlog, CreateBlogInput, UpdateBlogInput, DbBlogLog, CreateBlogLogInput, DbBlogView } from "./blogs.types";
 
 export interface BlogWithRelations extends DbBlog {
   project_name?: string;
@@ -19,8 +19,8 @@ export class BlogService {
 
     const result = await this.db
       .prepare(
-        `INSERT INTO blogs (id, user_id, title, description, content, meta_description, status, image_url, project_id, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO blogs (id, user_id, title, description, content, meta_description, status, image_url, project_id, view_count, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         id,
@@ -32,6 +32,7 @@ export class BlogService {
         data.status || "draft",
         imageUrl,
         data.project_id || null,
+        0,
         now,
         now,
       )
@@ -51,6 +52,7 @@ export class BlogService {
       status: data.status || "draft",
       image_url: imageUrl,
       project_id: data.project_id || null,
+      view_count: 0,
       created_at: now,
       updated_at: now,
     };
@@ -61,12 +63,14 @@ export class BlogService {
     return result || null;
   }
 
-  async findByUserId(userId: string, limit = 50, offset = 0): Promise<{ blogs: BlogWithRelations[]; total: number }> {
+  async findByUserId(userId: string, limit = 10, page = 1): Promise<{ blogs: BlogWithRelations[]; total: number; page: number; totalPages: number }> {
+    const offset = (page - 1) * limit;
     const countResult = await this.db
       .prepare("SELECT COUNT(*) as total FROM blogs WHERE user_id = ?")
       .bind(userId)
       .first<{ total: number }>();
     const total = countResult?.total ?? 0;
+    const totalPages = Math.ceil(total / limit);
 
     const result = await this.db
       .prepare(
@@ -75,10 +79,11 @@ export class BlogService {
       .bind(userId, limit, offset)
       .all<BlogWithRelations>();
 
-    return { blogs: result.results, total };
+    return { blogs: result.results, total, page, totalPages };
   }
 
-  async findAll(limit = 50, offset = 0, status?: string): Promise<{ blogs: BlogWithRelations[]; total: number }> {
+  async findAll(limit = 10, page = 1, status?: string): Promise<{ blogs: BlogWithRelations[]; total: number; page: number; totalPages: number }> {
+    const offset = (page - 1) * limit;
     let countQuery = "SELECT COUNT(*) as total FROM blogs";
     const params: (string | number)[] = [];
 
@@ -92,6 +97,7 @@ export class BlogService {
       .bind(...params)
       .first<{ total: number }>();
     const total = countResult?.total ?? 0;
+    const totalPages = Math.ceil(total / limit);
 
     let selectQuery = `SELECT b.*, p.name as project_name, u.name as user_name 
                        FROM blogs b 
@@ -108,15 +114,16 @@ export class BlogService {
       .bind(...params)
       .all<BlogWithRelations>();
 
-    return { blogs: result.results, total };
+    return { blogs: result.results, total, page, totalPages };
   }
 
   async findByProjectId(
     projectId: string,
-    limit = 50,
-    offset = 0,
+    limit = 10,
+    page = 1,
     status?: string,
-  ): Promise<{ blogs: BlogWithRelations[]; total: number }> {
+  ): Promise<{ blogs: BlogWithRelations[]; total: number; page: number; totalPages: number }> {
+    const offset = (page - 1) * limit;
     let countQuery = "SELECT COUNT(*) as total FROM blogs WHERE project_id = ?";
     const countParams: (string | number)[] = [projectId];
 
@@ -130,6 +137,7 @@ export class BlogService {
       .bind(...countParams)
       .first<{ total: number }>();
     const total = countResult?.total ?? 0;
+    const totalPages = Math.ceil(total / limit);
 
     let selectQuery =
       "SELECT b.*, u.name as user_name FROM blogs b LEFT JOIN users u ON b.user_id = u.id WHERE b.project_id = ?";
@@ -147,7 +155,7 @@ export class BlogService {
       .bind(...selectParams)
       .all<BlogWithRelations>();
 
-    return { blogs: result.results, total };
+    return { blogs: result.results, total, page, totalPages };
   }
 
   async update(id: string, data: UpdateBlogInput): Promise<DbBlog> {
@@ -233,6 +241,35 @@ export class BlogService {
       .prepare(`SELECT * FROM blog_logs WHERE blog_id = ? ORDER BY created_at DESC`)
       .bind(blogId)
       .all<DbBlogLog>();
+
+    return result.results;
+  }
+
+  async recordView(blogId: string, ipHash?: string, userAgent?: string, referer?: string): Promise<void> {
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    await this.db
+      .prepare(
+        `INSERT INTO blog_views (id, blog_id, ip_hash, user_agent, referer, viewed_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(id, blogId, ipHash || null, userAgent || null, referer || null, now)
+      .run();
+
+    await this.db.prepare(`UPDATE blogs SET view_count = view_count + 1 WHERE id = ?`).bind(blogId).run();
+  }
+
+  async getViewCount(blogId: string): Promise<number> {
+    const result = await this.db.prepare(`SELECT view_count FROM blogs WHERE id = ?`).bind(blogId).first<{ view_count: number }>();
+    return result?.view_count ?? 0;
+  }
+
+  async findViewsByBlogId(blogId: string, limit = 100): Promise<DbBlogView[]> {
+    const result = await this.db
+      .prepare(`SELECT * FROM blog_views WHERE blog_id = ? ORDER BY viewed_at DESC LIMIT ?`)
+      .bind(blogId, limit)
+      .all<DbBlogView>();
 
     return result.results;
   }

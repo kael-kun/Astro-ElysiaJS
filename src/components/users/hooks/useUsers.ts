@@ -2,13 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import apiClient from "../../../services/apiClient";
 import { getApiErrorMessage } from "../../../services/apiError";
 import type { User, CreateUserInput, UpdateUserInput } from "../types/user";
-import { useToastContext } from "../../../providers/ToastProvider";
 
 interface UseUsersResult {
   users: User[];
   loading: boolean;
   error: string | null;
   page: number;
+  limit: number;
   totalPages: number;
   totalUsers: number;
   itemsPerPage: number;
@@ -18,6 +18,7 @@ interface UseUsersResult {
   deleteUser: (userId: string) => Promise<void>;
   getUserBlogs: (userId: string) => Promise<unknown>;
   setPage: (page: number) => void;
+  setLimit: (limit: number) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -30,10 +31,19 @@ function getInitialPageFromURL(): number {
   return isNaN(parsed) || parsed < 1 ? 1 : parsed;
 }
 
-function updateURLWithPage(page: number): void {
+function getInitialLimitFromURL(): number {
+  if (typeof window === "undefined") return ITEMS_PER_PAGE;
+  const params = new URLSearchParams(window.location.search);
+  const limitParam = params.get("limit");
+  const parsed = parseInt(limitParam || String(ITEMS_PER_PAGE), 10);
+  return isNaN(parsed) || parsed < 1 ? ITEMS_PER_PAGE : parsed;
+}
+
+function updateURLWithPage(page: number, limit: number): void {
   if (typeof window === "undefined") return;
   const url = new URL(window.location.href);
   url.searchParams.set("page", String(page));
+  url.searchParams.set("limit", String(limit));
   window.history.pushState({}, "", url.toString());
 }
 
@@ -42,9 +52,9 @@ export const useUsers = (): UseUsersResult => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPageState] = useState(getInitialPageFromURL);
+  const [limit, setLimitState] = useState(getInitialLimitFromURL);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
-  const { error: showError, success: showSuccess } = useToastContext();
 
   const fetchUsers = useCallback(
     async (pageNumber: number = page) => {
@@ -57,38 +67,45 @@ export const useUsers = (): UseUsersResult => {
           total: number;
           page: number;
           totalPages: number;
-        }>(`/api/users?page=${pageNumber}&limit=${ITEMS_PER_PAGE}`);
+        }>(`/api/users?page=${pageNumber}&limit=${limit}`);
         setUsers(response.data.users);
         setTotalUsers(response.data.total);
         setPageState(response.data.page);
         setTotalPages(response.data.totalPages);
       } catch (err) {
         const message = getApiErrorMessage(err);
-        showError(message);
         setError(message);
         console.error("Error fetching users:", err);
       } finally {
         setLoading(false);
       }
     },
-    [page],
+    [page, limit],
   );
 
-  const handleSetPage = useCallback((newPage: number) => {
-    if (newPage < 1) return;
-    setPageState(newPage);
-    updateURLWithPage(newPage);
+  const handleSetPage = useCallback(
+    (newPage: number) => {
+      if (newPage < 1) return;
+      setPageState(newPage);
+      updateURLWithPage(newPage, limit);
+    },
+    [limit],
+  );
+
+  const handleSetLimit = useCallback((newLimit: number) => {
+    if (newLimit < 1) return;
+    setLimitState(newLimit);
+    setPageState(1);
+    updateURLWithPage(1, newLimit);
   }, []);
 
   const createUser = useCallback(
     async (data: CreateUserInput): Promise<User> => {
       try {
         const response = await apiClient.post<User>("/api/user", data);
-        showSuccess("User created successfully");
         await fetchUsers(page);
         return response.data;
       } catch (err) {
-        showError("Failed to create user. Please try again.");
         const message = getApiErrorMessage(err);
         throw new Error(message);
       }
@@ -100,11 +117,10 @@ export const useUsers = (): UseUsersResult => {
     async (id: string, data: UpdateUserInput): Promise<User> => {
       try {
         const response = await apiClient.put<User>(`/api/user/${id}`, data);
-        showSuccess("User updated successfully");
+
         await fetchUsers(page);
         return response.data;
       } catch (err) {
-        showError("Failed to update user. Please try again.");
         const message = getApiErrorMessage(err);
         throw new Error(message);
       }
@@ -116,10 +132,9 @@ export const useUsers = (): UseUsersResult => {
     async (userId: string): Promise<void> => {
       try {
         await apiClient.delete(`/api/user/${userId}`);
-        showSuccess("User deleted successfully");
+
         await fetchUsers(page);
       } catch (err) {
-        showError("Failed to delete user. Please try again.");
         const message = getApiErrorMessage(err);
         throw new Error(message);
       }
@@ -146,14 +161,16 @@ export const useUsers = (): UseUsersResult => {
     loading,
     error,
     page,
+    limit,
     totalPages,
     totalUsers,
-    itemsPerPage: ITEMS_PER_PAGE,
+    itemsPerPage: limit,
     fetchUsers,
     createUser,
     updateUser,
     deleteUser,
     getUserBlogs,
     setPage: handleSetPage,
+    setLimit: handleSetLimit,
   };
 };

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "src/components/ui/Button";
 import apiClient from "src/services/apiClient";
-import { useToast } from "src/hooks/useToast";
+import { useToastContext } from "src/providers/ToastProvider";
+import ReactMarkdown from "react-markdown";
 
 interface BlogData {
   id: string;
@@ -12,6 +13,7 @@ interface BlogData {
   status: "draft" | "published";
   image_url: string | null;
   project_id: string | null;
+  view_count?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,7 +26,7 @@ export function BlogViewContent({ blogId }: BlogViewContentProps) {
   const [blog, setBlog] = useState<BlogData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { error: showError } = useToast();
+  const { error: showError } = useToastContext();
 
   const fetchBlog = useCallback(async () => {
     try {
@@ -69,12 +71,6 @@ export function BlogViewContent({ blogId }: BlogViewContentProps) {
     });
   };
 
-  const getReadingTime = (content: string | null) => {
-    if (!content) return 0;
-    const words = content.split(/\s+/).length;
-    return Math.ceil(words / 200);
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -101,8 +97,6 @@ export function BlogViewContent({ blogId }: BlogViewContentProps) {
       </div>
     );
   }
-
-  const readingTime = getReadingTime(blog.content);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -135,10 +129,16 @@ export function BlogViewContent({ blogId }: BlogViewContentProps) {
               </span>
               <span className="text-gray-400">•</span>
               <span className="text-gray-600 text-sm">{formatDate(blog.createdAt)}</span>
-              {readingTime > 0 && (
+              {blog.view_count !== undefined && (
                 <>
                   <span className="text-gray-400">•</span>
-                  <span className="text-gray-600 text-sm">{readingTime} min read</span>
+                  <span className="text-gray-600 text-sm flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    {blog.view_count} views
+                  </span>
                 </>
               )}
             </div>
@@ -149,22 +149,59 @@ export function BlogViewContent({ blogId }: BlogViewContentProps) {
 
             {blog.description && <p className="text-xl text-gray-600 mb-8 leading-relaxed">{blog.description}</p>}
 
-            {blog.meta_description && (
-              <div className="mb-8 p-4 bg-gray-50 rounded-lg border-l-4 border-red-500">
-                <p className="text-sm text-gray-700">
-                  <span className="font-semibold">Meta Description:</span> {blog.meta_description}
-                </p>
-              </div>
-            )}
-
             <div className="border-t border-gray-200 my-8"></div>
 
             {blog.content ? (
-              <div className="prose prose-lg max-w-none">
-                <div
-                  className="blog-content text-gray-800 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: blog.content }}
-                />
+              <div className="blog-content text-gray-800">
+                <ReactMarkdown
+                  components={{
+                    h1: ({ children }) => <h1 className="text-4xl font-bold text-gray-900 mt-8 mb-4">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-3xl font-bold text-gray-900 mt-8 mb-4">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-2xl font-semibold text-gray-900 mt-6 mb-3">{children}</h3>,
+                    h4: ({ children }) => <h4 className="text-xl font-semibold text-gray-900 mt-4 mb-2">{children}</h4>,
+                    p: ({ children }) => <p className="text-lg text-gray-700 mb-4 leading-relaxed">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc list-inside mb-4 space-y-2">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside mb-4 space-y-2">{children}</ol>,
+                    li: ({ children }) => <li className="text-gray-700">{children}</li>,
+                    blockquote: ({ children }) => (
+                      <blockquote className="border-l-4 border-gray-300 pl-4 py-2 my-4 italic text-gray-600 bg-gray-50">
+                        {children}
+                      </blockquote>
+                    ),
+                    code: ({ className, children }) => {
+                      const match = /language-(\w+)/.exec(className || "");
+                      const isInline = !match;
+                      return isInline ? (
+                        <code className="bg-gray-100 text-red-600 px-1 py-0.5 rounded text-sm font-mono">{children}</code>
+                      ) : (
+                        <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-4">
+                          <code className={className}>{children}</code>
+                        </pre>
+                      );
+                    },
+                    a: ({ href, children }) => (
+                      <a href={href} className="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">
+                        {children}
+                      </a>
+                    ),
+                    img: ({ src, alt }) => (
+                      <img src={src} alt={alt || ""} className="w-full h-auto rounded-lg my-4 shadow-md" />
+                    ),
+                    hr: () => <hr className="my-8 border-gray-300" />,
+                    table: ({ children }) => (
+                      <div className="overflow-x-auto my-4">
+                        <table className="min-w-full border border-gray-200">{children}</table>
+                      </div>
+                    ),
+                    thead: ({ children }) => <thead className="bg-gray-50">{children}</thead>,
+                    th: ({ children }) => <th className="border border-gray-200 px-4 py-2 text-left font-semibold text-gray-900">{children}</th>,
+                    td: ({ children }) => <td className="border border-gray-200 px-4 py-2">{children}</td>,
+                    strong: ({ children }) => <strong className="font-bold text-gray-900">{children}</strong>,
+                    em: ({ children }) => <em className="italic">{children}</em>,
+                  }}
+                >
+                  {blog.content}
+                </ReactMarkdown>
               </div>
             ) : (
               <div className="text-center py-12 text-gray-500">

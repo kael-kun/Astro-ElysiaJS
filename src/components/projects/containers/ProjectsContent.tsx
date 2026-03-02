@@ -7,7 +7,7 @@ import { ProjectModal } from "../components/ProjectModal";
 import { ProjectActions } from "../components/ProjectActions";
 import { ConfirmModal } from "../../ui/ConfirmModal";
 import { useProjects } from "../hooks/useProjects";
-import { useToast } from "../../../hooks/useToast";
+import { useToastContext } from "src/providers/ToastProvider";
 import { useAuth } from "src/providers/AuthProvider";
 import { formatDate } from "src/utils";
 import type { Project, CreateProjectInput, UpdateProjectInput } from "../types/project";
@@ -37,7 +37,7 @@ export function ProjectsContent() {
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
 
-  const { success, error: showError } = useToast();
+  const { error: showError, success: showSuccess } = useToastContext();
 
   const handleAddProject = () => {
     setEditingProject(null);
@@ -62,7 +62,7 @@ export function ProjectsContent() {
     try {
       setModalLoading(true);
       await deleteProject(projectToDelete.id);
-      success(`Project "${projectToDelete.name}" has been deleted.`);
+      showSuccess(`Project "${projectToDelete.name}" has been deleted.`);
       setShowDeleteConfirm(false);
       setProjectToDelete(null);
     } catch (err: unknown) {
@@ -84,10 +84,10 @@ export function ProjectsContent() {
 
       if (editingProject) {
         await updateProject(data as UpdateProjectInput & { id: string });
-        success(`Project has been updated successfully.`);
+        showSuccess(`Project has been updated successfully.`);
       } else {
         await createProject(data as CreateProjectInput);
-        success(`Project has been created successfully.`);
+        showSuccess(`Project has been created successfully.`);
       }
 
       setIsModalOpen(false);

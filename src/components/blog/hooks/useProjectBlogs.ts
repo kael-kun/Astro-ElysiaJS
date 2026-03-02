@@ -7,11 +7,13 @@ export interface Blog {
   user_id: string;
   user_name?: string;
   title: string | null;
+  description: string | null;
   content: string | null;
   meta_description: string | null;
   status: "draft" | "published";
   image_url: string | null;
   project_id: string | null;
+  view_count?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,13 +30,17 @@ interface UseProjectBlogsResult {
   loading: boolean;
   error: string | null;
   page: number;
+  limit: number;
   totalPages: number;
   total: number;
+  itemsPerPage: number;
   fetchBlogs: (page?: number) => Promise<void>;
   createBlog: (content: string, metaDescription?: string) => Promise<Blog>;
   updateBlog: (id: string, data: Partial<Blog>) => Promise<Blog>;
   deleteBlog: (id: string) => Promise<void>;
   publishBlog: (id: string) => Promise<Blog>;
+  setPage: (page: number) => void;
+  setLimit: (limit: number) => void;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -45,12 +51,37 @@ function getProjectIdFromURL(): string | null {
   return params.get("projectId");
 }
 
+function getInitialPageFromURL(): number {
+  if (typeof window === "undefined") return 1;
+  const params = new URLSearchParams(window.location.search);
+  const pageParam = params.get("page");
+  const parsed = parseInt(pageParam || "1", 10);
+  return isNaN(parsed) || parsed < 1 ? 1 : parsed;
+}
+
+function getInitialLimitFromURL(): number {
+  if (typeof window === "undefined") return ITEMS_PER_PAGE;
+  const params = new URLSearchParams(window.location.search);
+  const limitParam = params.get("limit");
+  const parsed = parseInt(limitParam || String(ITEMS_PER_PAGE), 10);
+  return isNaN(parsed) || parsed < 1 ? ITEMS_PER_PAGE : parsed;
+}
+
+function updateURLWithPage(page: number, limit: number): void {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  url.searchParams.set("page", String(page));
+  url.searchParams.set("limit", String(limit));
+  window.history.pushState({}, "", url.toString());
+}
+
 export const useProjectBlogs = (): UseProjectBlogsResult => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  const [page, setPageState] = useState(getInitialPageFromURL);
+  const [limit, setLimitState] = useState(getInitialLimitFromURL);
   const [totalPages, setTotalPages] = useState(0);
   const [total, setTotal] = useState(0);
 
@@ -68,7 +99,7 @@ export const useProjectBlogs = (): UseProjectBlogsResult => {
   }, [projectId]);
 
   const fetchBlogs = useCallback(
-    async (pageNum = 1) => {
+    async (pageNum = page) => {
       if (!projectId) {
         setBlogs([]);
         setLoading(false);
@@ -79,15 +110,12 @@ export const useProjectBlogs = (): UseProjectBlogsResult => {
         setLoading(true);
         setError(null);
 
-        const limit = ITEMS_PER_PAGE;
-        const offset = (pageNum - 1) * limit;
-
         const response = await apiClient.get<{ results: Blog[]; total: number; page: number; totalPages: number }>(
-          `/api/blogs?projectId=${projectId}&limit=${limit}&offset=${offset}`,
+          `/api/blogs?projectId=${projectId}&limit=${limit}&page=${pageNum}`,
         );
 
         setBlogs(response.data.results);
-        setPage(response.data.page);
+        setPageState(response.data.page);
         setTotalPages(response.data.totalPages);
         setTotal(response.data.total);
       } catch (err) {
@@ -98,8 +126,21 @@ export const useProjectBlogs = (): UseProjectBlogsResult => {
         setLoading(false);
       }
     },
-    [projectId],
+    [projectId, page, limit],
   );
+
+  const handleSetPage = useCallback((newPage: number) => {
+    if (newPage < 1) return;
+    setPageState(newPage);
+    updateURLWithPage(newPage, limit);
+  }, [limit]);
+
+  const handleSetLimit = useCallback((newLimit: number) => {
+    if (newLimit < 1) return;
+    setLimitState(newLimit);
+    setPageState(1);
+    updateURLWithPage(1, newLimit);
+  }, []);
 
   const createBlog = useCallback(
     async (content: string, metaDescription?: string): Promise<Blog> => {
@@ -159,12 +200,16 @@ export const useProjectBlogs = (): UseProjectBlogsResult => {
     loading,
     error,
     page,
+    limit,
     totalPages,
     total,
+    itemsPerPage: limit,
     fetchBlogs,
     createBlog,
     updateBlog,
     deleteBlog,
     publishBlog,
+    setPage: handleSetPage,
+    setLimit: handleSetLimit,
   };
 };

@@ -56,6 +56,7 @@ CREATE TABLE blogs (
   status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
   image_url TEXT,
   project_id TEXT,
+  view_count INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -98,3 +99,19 @@ CREATE TABLE api_keys (
 
 CREATE INDEX idx_api_keys_project_id ON api_keys(project_id);
 CREATE INDEX idx_api_keys_key_prefix ON api_keys(key_prefix);
+
+-- ---------------------------------------------
+-- BLOG VIEWS TABLE
+-- ---------------------------------------------
+CREATE TABLE blog_views (
+  id TEXT PRIMARY KEY,
+  blog_id TEXT NOT NULL,
+  ip_hash TEXT,
+  user_agent TEXT,
+  referer TEXT,
+  viewed_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (blog_id) REFERENCES blogs(id)
+);
+
+CREATE INDEX idx_blog_views_blog_id ON blog_views(blog_id);
+CREATE INDEX idx_blog_views_viewed_at ON blog_views(viewed_at DESC);

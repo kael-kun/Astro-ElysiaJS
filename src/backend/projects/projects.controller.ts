@@ -89,12 +89,32 @@ export async function updateProject(
   authUser: AuthUser,
 ): Promise<ProjectResponse> {
   const projectService = createProjectService(env);
-  const project = await projectService.update(id, authUser.id, data);
+  const existing = await projectService.findById(id);
+
+  if (!existing) {
+    throw new Error("Project not found");
+  }
+
+  if (existing.user_id !== authUser.id && authUser.role !== "admin") {
+    throw new Error("Forbidden: Cannot update other users' projects");
+  }
+
+  const project = await projectService.update(id, data);
 
   return toProjectResponse(project);
 }
 
 export async function deleteProject(id: string, env: Env, authUser: AuthUser): Promise<void> {
   const projectService = createProjectService(env);
-  await projectService.delete(id, authUser.id);
+  const existing = await projectService.findById(id);
+
+  if (!existing) {
+    throw new Error("Project not found");
+  }
+
+  if (existing.user_id !== authUser.id && authUser.role !== "admin") {
+    throw new Error("Forbidden: Cannot delete other users' projects");
+  }
+
+  await projectService.delete(id);
 }

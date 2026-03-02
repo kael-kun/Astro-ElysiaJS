@@ -10,6 +10,7 @@ export interface DbBlog {
   status: BlogStatus;
   image_url: string | null;
   project_id: string | null;
+  view_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -21,6 +22,15 @@ export interface DbBlogLog {
   action: BlogLogAction;
   details: string | null;
   created_at: string;
+}
+
+export interface DbBlogView {
+  id: string;
+  blog_id: string;
+  ip_hash: string | null;
+  user_agent: string | null;
+  referer: string | null;
+  viewed_at: string;
 }
 
 export interface CreateBlogInput {
@@ -53,6 +63,7 @@ export interface BlogResponse {
   status: BlogStatus;
   image_url: string | null;
   project_id?: string | null;
+  view_count?: number;
   createdAt: string;
   updatedAt: string;
   project_name?: string;

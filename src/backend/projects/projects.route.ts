@@ -80,6 +80,7 @@ export function ProjectRoutes() {
     .put(
       "/project/:id",
       async ({ params, body, env, authUser }) => {
+        console.log(authUser);
         if (!authUser) return errorResponse("Unauthorized", 401);
 
         const projectData: UpdateProjectInput = {

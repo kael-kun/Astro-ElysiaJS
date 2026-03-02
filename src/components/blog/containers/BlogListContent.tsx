@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { Select } from "../../ui/Select";
 import { Card } from "../../ui/Card";
-import { BlogTable } from "../components/BlogTable";
+import { BlogCardList } from "../components/BlogCardList";
 import { Button } from "../../ui/Button";
 import { Pagination } from "../../ui/Pagination";
+import { ConfirmModal } from "../../ui/ConfirmModal";
 import { useProjectSelector } from "../hooks/useProjectSelector";
-import { useProjectBlogs } from "../hooks/useProjectBlogs";
+import { useProjectBlogs, type Blog } from "../hooks/useProjectBlogs";
 import { useAuth } from "src/providers/AuthProvider";
 import { ApiIntegrationModal } from "../components/ApiIntegrationModal";
+import { useToastContext } from "src/providers/ToastProvider";
 
 function getModeFromURL(): "select" | "list" {
   if (typeof window === "undefined") return "select";
@@ -28,6 +30,11 @@ export function BlogListContent() {
   const [mode, setMode] = useState<"select" | "list">("select");
   const [initialProjectId, setInitialProjectId] = useState<string | null>(null);
   const [isApiModalOpen, setIsApiModalOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [blogToDelete, setBlogToDelete] = useState<Blog | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+
+  const { error: showError, success: showSuccess } = useToastContext();
 
   const { projects, loading, error, selectedProjectId, setSelectedProjectId } = useProjectSelector();
 
@@ -37,6 +44,7 @@ export function BlogListContent() {
     loading: blogsLoading,
     error: blogsError,
     page,
+    limit,
     totalPages,
     total,
     deleteBlog,
@@ -89,6 +97,27 @@ export function BlogListContent() {
 
   const handlePageChange = (newPage: number) => {
     fetchBlogs(newPage);
+  };
+
+  const handleDeleteBlog = (blog: Blog) => {
+    setBlogToDelete(blog);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!blogToDelete) return;
+
+    try {
+      setModalLoading(true);
+      await deleteBlog(blogToDelete.id);
+      showSuccess(`Blog "${blogToDelete.title || 'Untitled'}" has been deleted successfully.`);
+      setShowDeleteConfirm(false);
+      setBlogToDelete(null);
+    } catch (err: any) {
+      showError(err.message || "Failed to delete blog");
+    } finally {
+      setModalLoading(false);
+    }
   };
 
   if (loading) {
@@ -149,30 +178,47 @@ export function BlogListContent() {
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">{blogsError}</div>
         )}
 
-        <Card shadow="md" rounded="lg" className="overflow-hidden">
-          <BlogTable
-            blogs={blogs}
-            loading={blogsLoading}
-            onDelete={(blog) => deleteBlog(blog.id)}
-            showProject={false}
-            showOwner={isAdmin}
-          />
-        </Card>
-
-        <Pagination
-          currentPage={page}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          totalItems={total}
-          itemsPerPage={10}
-          className="mt-4"
+        <BlogCardList
+          blogs={blogs}
+          loading={blogsLoading}
+          onDelete={handleDeleteBlog}
+          showOwner={isAdmin}
         />
+
+        {blogs.length > 0 && (
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            totalItems={total}
+            itemsPerPage={limit}
+            className="mt-8"
+          />
+        )}
 
         <ApiIntegrationModal
           isOpen={isApiModalOpen}
           onClose={() => setIsApiModalOpen(false)}
           projectId={initialProjectId || ""}
           projectName={project?.name || ""}
+        />
+
+        <ConfirmModal
+          isOpen={showDeleteConfirm}
+          onClose={() => {
+            setShowDeleteConfirm(false);
+            setBlogToDelete(null);
+          }}
+          onConfirm={handleConfirmDelete}
+          title="Delete Blog"
+          message={
+            <span>
+              Are you sure you want to delete <span className="font-semibold text-gray-900">{blogToDelete?.title || "Untitled Blog"}</span>?
+              This action cannot be undone.
+            </span>
+          }
+          confirmText="Delete"
+          loading={modalLoading}
         />
       </div>
     );
@@ -214,6 +260,24 @@ export function BlogListContent() {
         onClose={() => setIsApiModalOpen(false)}
         projectId={selectedProjectId || ""}
         projectName={projects.find(p => p.id === selectedProjectId)?.name || ""}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false);
+          setBlogToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Blog"
+        message={
+          <span>
+            Are you sure you want to delete <span className="font-semibold text-gray-900">{blogToDelete?.title || "Untitled Blog"}</span>?
+            This action cannot be undone.
+          </span>
+        }
+        confirmText="Delete"
+        loading={modalLoading}
       />
     </div>
   );
