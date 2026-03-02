@@ -44,7 +44,7 @@ export function BlogRoutes() {
           const origin = new URL(request.url).origin;
           if (body.image) {
             const imageFileName = await storeImage(body.image, env);
-            imagePath = `${origin}/api/blogs/images/${imageFileName}`;
+            imagePath = `${origin}/api/images/${imageFileName}`;
           }
 
           console.log(imagePath);
