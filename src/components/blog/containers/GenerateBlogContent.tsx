@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BlogForm, BlogFormValues } from "src/components/blog/components/BlogForm";
 import { ImageUpload } from "src/components/blog/components/ImageUpload";
-import { BlogEditor } from "src/components/blog/components/BlogEditor";
+import { TiptapEditor } from "src/components/blog/components/TiptapEditor";
 import { BlogPreview } from "src/components/blog/components/BlogPreview";
 import { useImageUpload } from "src/components/blog/hooks/useImageUpload";
 import { useBlogGenerator } from "src/components/blog/hooks/UseBlogGenerator";
@@ -51,6 +51,7 @@ export function GenerateBlogContent() {
   const [description, setDescription] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [manualContent, setManualContent] = useState("");
+  const [generatedContent, setGeneratedContent] = useState("");
 
   const { error: showError, success: showSuccess } = useToastContext();
   const { previewImage, fileName, uploadedFile, uploadError, handleFileUpload, removeImage } = useImageUpload();
@@ -87,6 +88,13 @@ export function GenerateBlogContent() {
       setMetaDescription(metadata.meta_description);
     }
   }, [metadata]);
+
+  // Sync generated content to editable state
+  useEffect(() => {
+    if (content) {
+      setGeneratedContent(content);
+    }
+  }, [content]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -156,14 +164,14 @@ export function GenerateBlogContent() {
   };
 
   const handleSaveBlog = async () => {
-    if (!content || !projectId) return;
+    if (!generatedContent || !projectId) return;
 
     setSaving(true);
     try {
       const formData = new FormData();
       formData.append("title", title);
       formData.append("description", description);
-      formData.append("content", content);
+      formData.append("content", generatedContent);
       formData.append("meta_description", metaDescription);
       formData.append("status", status);
       formData.append("project_id", projectId);
@@ -385,7 +393,7 @@ export function GenerateBlogContent() {
 
               <div className="p-6 border-b border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Content *</h3>
-                <BlogEditor 
+                <TiptapEditor 
                   content={manualContent} 
                   onContentChange={setManualContent} 
                   height="500px" 
@@ -464,7 +472,7 @@ export function GenerateBlogContent() {
                       </div>
                     </div>
 
-                    <BlogEditor content={content} onContentChange={() => {}} />
+                    <TiptapEditor content={generatedContent} onContentChange={setGeneratedContent} height="500px" />
 
                     {/* Show loading indicator while generating */}
                     {generating && (
@@ -480,7 +488,7 @@ export function GenerateBlogContent() {
                     )}
 
                     <BlogPreview
-                      content={content}
+                      content={generatedContent}
                       showContent={true}
                       onSave={handleSaveBlog}
                       saving={saving}

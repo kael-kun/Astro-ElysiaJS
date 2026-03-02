@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { BlogEditor } from "./BlogEditor";
+import { TiptapEditor } from "./TiptapEditor";
 import { BlogPreview } from "./BlogPreview";
 import { ImageUpload } from "./ImageUpload";
 import { useImageUpload } from "../hooks/useImageUpload";
@@ -240,7 +240,7 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
 
           <div className="p-6 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Content</h3>
-            <BlogEditor content={content} onContentChange={handleContentChange} height="500px" />
+            <TiptapEditor content={content} onContentChange={handleContentChange} height="500px" />
           </div>
 
           <BlogPreview

@@ -111,12 +111,18 @@ export function BlogViewContent({ blogId }: BlogViewContentProps) {
         </div>
 
         <article className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          {blog.image_url && (
-            <div className="relative h-64 md:h-96 w-full">
+          <div className="relative h-64 md:h-96 w-full">
+            {blog.image_url ? (
               <img src={blog.image_url} alt={blog.title || "Blog image"} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-            </div>
-          )}
+            ) : (
+              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                <svg className="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            )}
+            {blog.image_url && <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>}
+          </div>
 
           <div className="p-6 md:p-10">
             <div className="flex items-center gap-3 mb-6">
@@ -147,7 +153,11 @@ export function BlogViewContent({ blogId }: BlogViewContentProps) {
               {blog.title || "Untitled Blog"}
             </h1>
 
-            {blog.description && <p className="text-xl text-gray-600 mb-8 leading-relaxed">{blog.description}</p>}
+            {blog.description ? (
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">{blog.description}</p>
+            ) : (
+              <p className="text-xl text-gray-400 mb-8 leading-relaxed italic">No description available</p>
+            )}
 
             <div className="border-t border-gray-200 my-8"></div>
 
@@ -160,9 +170,13 @@ export function BlogViewContent({ blogId }: BlogViewContentProps) {
                     h3: ({ children }) => <h3 className="text-2xl font-semibold text-gray-900 mt-6 mb-3">{children}</h3>,
                     h4: ({ children }) => <h4 className="text-xl font-semibold text-gray-900 mt-4 mb-2">{children}</h4>,
                     p: ({ children }) => <p className="text-lg text-gray-700 mb-4 leading-relaxed">{children}</p>,
-                    ul: ({ children }) => <ul className="list-disc list-inside mb-4 space-y-2">{children}</ul>,
-                    ol: ({ children }) => <ol className="list-decimal list-inside mb-4 space-y-2">{children}</ol>,
-                    li: ({ children }) => <li className="text-gray-700">{children}</li>,
+                    ul: ({ children }) => <ul className="list-disc list-inside mb-4 space-y-2 ml-4">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside mb-4 space-y-2 ml-4">{children}</ol>,
+                    li: ({ children, ...props }) => (
+                      <li className="text-gray-700 mb-1" {...props}>
+                        {children}
+                      </li>
+                    ),
                     blockquote: ({ children }) => (
                       <blockquote className="border-l-4 border-gray-300 pl-4 py-2 my-4 italic text-gray-600 bg-gray-50">
                         {children}

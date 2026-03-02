@@ -174,9 +174,7 @@ export function ApiIntegrationModal({ isOpen, onClose, projectId, projectName }:
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xs font-medium text-gray-400 uppercase">Base URL</span>
               </div>
-              <code className="text-green-400 text-sm font-mono block mb-4">
-                `{domain}/api/public/${projectId}`
-              </code>
+              <code className="text-green-400 text-sm font-mono block mb-4">`{domain}/api/public`</code>
 
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xs font-medium text-gray-400 uppercase">List Blogs</span>
