@@ -100,6 +100,28 @@ export class UserService {
   }
 }
 
+interface ActivityLogInput {
+  userId: string;
+  entityType: "blog" | "project" | "user";
+  entityId: string;
+  entityName: string;
+  action: "created" | "updated" | "deleted";
+  details?: string;
+}
+
 export function createUserService(env: Env): UserService {
   return new UserService(env.DB);
+}
+
+export async function createActivityLog(db: D1Database, input: ActivityLogInput): Promise<void> {
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  await db
+    .prepare(
+      `INSERT INTO activity_logs (id, user_id, entity_type, entity_id, entity_name, action, details, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(id, input.userId, input.entityType, input.entityId, input.entityName, input.action, input.details || null, now)
+    .run();
 }

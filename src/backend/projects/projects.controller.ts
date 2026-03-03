@@ -79,6 +79,15 @@ export async function createProject(data: CreateProjectInput, env: Env, authUser
   const projectService = createProjectService(env);
   const project = await projectService.create(authUser.id, data);
 
+  await projectService.createActivityLog(
+    authUser.id,
+    "project",
+    project.id,
+    project.name,
+    "created",
+    `Created project: ${project.name}`,
+  );
+
   return toProjectResponse(project);
 }
 
@@ -101,6 +110,15 @@ export async function updateProject(
 
   const project = await projectService.update(id, data);
 
+  await projectService.createActivityLog(
+    authUser.id,
+    "project",
+    id,
+    project.name,
+    "updated",
+    `Updated project: ${project.name}`,
+  );
+
   return toProjectResponse(project);
 }
 
@@ -117,4 +135,13 @@ export async function deleteProject(id: string, env: Env, authUser: AuthUser): P
   }
 
   await projectService.delete(id);
+
+  await projectService.createActivityLog(
+    authUser.id,
+    "project",
+    id,
+    existing.name,
+    "deleted",
+    `Deleted project: ${existing.name}`,
+  );
 }

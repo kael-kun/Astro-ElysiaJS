@@ -1,16 +1,7 @@
 import Elysia, { t } from "elysia";
 import { typedEnv } from "src/types/elysia";
 import { parseAuthToken } from "../users/users.controller";
-import {
-  createBlog,
-  getBlogById,
-  getBlogs,
-  updateBlog,
-  deleteBlog,
-  publishBlog,
-  getBlogLogs,
-  storeImage,
-} from "./blogs.controller";
+import { createBlog, getBlogById, getBlogs, updateBlog, deleteBlog, publishBlog, storeImage } from "./blogs.controller";
 import type { CreateBlogInput, UpdateBlogInput } from "./blogs.types";
 
 function errorResponse(message: string, status: number) {
@@ -162,17 +153,6 @@ export function BlogRoutes() {
         return blog;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to publish blog";
-        const status = message.includes("not found") ? 404 : message.includes("Forbidden") ? 403 : 500;
-        return errorResponse(message, status);
-      }
-    })
-    .get("/blog/:id/logs", async ({ params, env, authUser }) => {
-      if (!authUser) return errorResponse("Unauthorized", 401);
-      try {
-        const logs = await getBlogLogs(params.id, env, authUser);
-        return { logs };
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to fetch blog logs";
         const status = message.includes("not found") ? 404 : message.includes("Forbidden") ? 403 : 500;
         return errorResponse(message, status);
       }

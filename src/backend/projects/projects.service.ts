@@ -117,6 +117,26 @@ export class ProjectService {
       throw new Error(`Failed to delete project: ${result.error}`);
     }
   }
+
+  async createActivityLog(
+    userId: string,
+    entityType: "blog" | "project" | "user",
+    entityId: string,
+    entityName: string,
+    action: "created" | "updated" | "deleted",
+    details?: string,
+  ): Promise<void> {
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    await this.db
+      .prepare(
+        `INSERT INTO activity_logs (id, user_id, entity_type, entity_id, entity_name, action, details, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(id, userId, entityType, entityId, entityName, action, details || null, now)
+      .run();
+  }
 }
 
 export function createProjectService(env: Env): ProjectService {

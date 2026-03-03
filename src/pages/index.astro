@@ -1,9 +1,4 @@
 ---
-import {Welcome} from '../components/Welcome';
-import Layout from '../layouts/Layout.astro';
-
+return Astro.redirect('/auth/login');
 ---
 
-<Layout>
-	<Welcome client:only = "react" />
-</Layout>

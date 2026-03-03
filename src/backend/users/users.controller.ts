@@ -1,5 +1,5 @@
 import type { AuthUser, CreateUserInput, UpdateUserInput, UserResponse, PaginatedUsersResponse } from "./users.types";
-import { createUserService } from "./users.service";
+import { createUserService, createActivityLog } from "./users.service";
 import { authenticateUser, hashPasswordValue } from "../auth/auth.service";
 
 function validateEmail(email: string): boolean {
@@ -174,6 +174,15 @@ export async function createUser(data: CreateUserInput, env: Env, authUser: Auth
     role: data.role,
   });
 
+  await createActivityLog(env.DB, {
+    userId: authUser.id,
+    entityType: "user",
+    entityId: user.id,
+    entityName: user.name,
+    action: "created",
+    details: `Created user: ${user.name} (${user.email})`,
+  });
+
   return toUserResponse(user);
 }
 
@@ -225,6 +234,16 @@ export async function updateUser(
   if (authUser.role === "admin" && data.role) updateData.role = data.role;
 
   const user = await userService.update(id, updateData);
+
+  await createActivityLog(env.DB, {
+    userId: authUser.id,
+    entityType: "user",
+    entityId: user.id,
+    entityName: user.name,
+    action: "updated",
+    details: `Updated user: ${user.name}`,
+  });
+
   return toUserResponse(user);
 }
 
@@ -241,6 +260,15 @@ export async function deleteUser(id: string, env: Env, authUser: AuthUser): Prom
   }
 
   await userService.delete(id);
+
+  await createActivityLog(env.DB, {
+    userId: authUser.id,
+    entityType: "user",
+    entityId: id,
+    entityName: existingUser.name,
+    action: "deleted",
+    details: `Deleted user: ${existingUser.name} (${existingUser.email})`,
+  });
 }
 
 export async function parseAuthToken(authHeader: string | undefined, env: Env): Promise<AuthUser | null> {

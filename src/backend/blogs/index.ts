@@ -6,7 +6,6 @@ export {
   updateBlog,
   deleteBlog,
   publishBlog,
-  getBlogLogs,
 } from "./blogs.controller";
 export type {
   DbBlog,
@@ -14,6 +13,5 @@ export type {
   UpdateBlogInput,
   BlogResponse,
   PaginatedBlogsResponse,
-  BlogLogResponse,
 } from "./blogs.types";
 export { createBlogService, type BlogService } from "./blogs.service";

@@ -1,4 +1,4 @@
-import type { BlogStatus, BlogLogAction } from "../types/index";
+import type { BlogStatus } from "../types/index";
 
 export interface DbBlog {
   id: string;
@@ -13,15 +13,6 @@ export interface DbBlog {
   view_count: number;
   created_at: string;
   updated_at: string;
-}
-
-export interface DbBlogLog {
-  id: string;
-  blog_id: string;
-  user_id: string;
-  action: BlogLogAction;
-  details: string | null;
-  created_at: string;
 }
 
 export interface DbBlogView {
@@ -84,20 +75,4 @@ export interface PaginatedBlogsResponse {
   total: number;
   page: number;
   totalPages: number;
-}
-
-export interface CreateBlogLogInput {
-  blog_id: string;
-  user_id: string;
-  action: BlogLogAction;
-  details?: string;
-}
-
-export interface BlogLogResponse {
-  id: string;
-  blog_id: string;
-  user_id: string;
-  action: BlogLogAction;
-  details: string | null;
-  createdAt: string;
 }

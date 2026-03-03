@@ -4,8 +4,6 @@ import type {
   UpdateBlogInput,
   BlogResponse,
   PaginatedBlogsResponse,
-  BlogLogResponse,
-  CreateBlogLogInput,
 } from "./blogs.types";
 import { createBlogService } from "./blogs.service";
 
@@ -41,24 +39,6 @@ function toBlogResponse(blog: {
   };
 }
 
-function toBlogLogResponse(log: {
-  id: string;
-  blog_id: string;
-  user_id: string;
-  action: string;
-  details: string | null;
-  created_at: string;
-}): BlogLogResponse {
-  return {
-    id: log.id,
-    blog_id: log.blog_id,
-    user_id: log.user_id,
-    action: log.action as BlogLogResponse["action"],
-    details: log.details,
-    createdAt: log.created_at,
-  };
-}
-
 export async function createBlog(data: CreateBlogInput, env: Env, authUser: AuthUser): Promise<BlogResponse> {
   if (data.user_id !== authUser.id && authUser.role !== "admin") {
     throw new Error("Forbidden: Cannot create blog for another user");
@@ -67,12 +47,14 @@ export async function createBlog(data: CreateBlogInput, env: Env, authUser: Auth
   const blogService = createBlogService(env);
   const blog = await blogService.create(data);
 
-  await blogService.createLog({
-    blog_id: blog.id,
-    user_id: authUser.id,
-    action: "created",
-    details: "Blog created",
-  });
+  await blogService.createActivityLog(
+    authUser.id,
+    "blog",
+    blog.id,
+    blog.title || "Untitled Blog",
+    "created",
+    `Created blog: ${blog.title || "Untitled Blog"}`,
+  );
 
   return toBlogResponse(blog);
 }
@@ -144,12 +126,14 @@ export async function updateBlog(
     await deleteImageFromR2(oldImageUrl, env);
   }
 
-  await blogService.createLog({
-    blog_id: id,
-    user_id: authUser.id,
-    action: "updated",
-    details: "Blog updated",
-  });
+  await blogService.createActivityLog(
+    authUser.id,
+    "blog",
+    id,
+    blog.title || "Untitled Blog",
+    "updated",
+    `Updated blog: ${blog.title || "Untitled Blog"}`,
+  );
 
   return toBlogResponse(blog);
 }
@@ -174,12 +158,14 @@ export async function deleteBlog(id: string, env: Env, authUser: AuthUser): Prom
     await deleteImageFromR2(imageUrl, env);
   }
 
-  await blogService.createLog({
-    blog_id: id,
-    user_id: authUser.id,
-    action: "deleted",
-    details: "Blog deleted",
-  });
+  await blogService.createActivityLog(
+    authUser.id,
+    "blog",
+    id,
+    existing.title || "Untitled Blog",
+    "deleted",
+    `Deleted blog: ${existing.title || "Untitled Blog"}`,
+  );
 }
 
 export async function publishBlog(id: string, env: Env, authUser: AuthUser): Promise<BlogResponse> {
@@ -196,30 +182,7 @@ export async function publishBlog(id: string, env: Env, authUser: AuthUser): Pro
 
   const blog = await blogService.update(id, { status: "published" });
 
-  await blogService.createLog({
-    blog_id: id,
-    user_id: authUser.id,
-    action: "published",
-    details: "Blog published",
-  });
-
   return toBlogResponse(blog);
-}
-
-export async function getBlogLogs(blogId: string, env: Env, authUser: AuthUser): Promise<BlogLogResponse[]> {
-  const blogService = createBlogService(env);
-  const blog = await blogService.findById(blogId);
-
-  if (!blog) {
-    throw new Error("Blog not found");
-  }
-
-  if (blog.user_id !== authUser.id && authUser.role !== "admin") {
-    throw new Error("Forbidden: Cannot access other users' blog logs");
-  }
-
-  const logs = await blogService.findLogsByBlogId(blogId);
-  return logs.map(toBlogLogResponse);
 }
 
 /// store imagein r2

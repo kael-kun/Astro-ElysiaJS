@@ -34,13 +34,13 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
+      axios.post(`${API_BASE_URL}/api/logout`, {}, { withCredentials: true }).catch(() => {});
       localStorage.removeItem("auth_token");
       localStorage.removeItem("user");
-      window.location.href = "/auth/login";
+      window.location.replace("/auth/login");
     }
 
     if (error.response?.status === 500) {
-      // Server error
       console.error("Server error occurred");
     }
 

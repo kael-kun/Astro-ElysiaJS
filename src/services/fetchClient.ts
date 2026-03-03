@@ -66,17 +66,18 @@ async function authenticatedFetch(input: string, init: RequestInit = {}): Promis
       }
 
       // Handle specific status codes
-      if (response.status === 401) {
-        // Unauthorized – clear auth and redirect
+      if (response.status === 401 || response.status === 403) {
+        // Call logout API to clear server-side cookie
+        fetch(`${API_BASE_URL}/api/logout`, {
+          method: "POST",
+          credentials: "include",
+        }).catch(() => {});
+
+        // Clear client-side auth
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user");
-        window.location.href = "/login";
+        window.location.replace("/auth/login");
         throw new Error("Unauthorized");
-      }
-
-      if (response.status === 403) {
-        console.error("Access forbidden");
-        throw new Error("Forbidden");
       }
 
       if (response.status >= 500) {

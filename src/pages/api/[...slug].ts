@@ -3,7 +3,7 @@ import type { APIRoute } from "astro";
 import { rateLimit } from "elysia-rate-limit";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { openapi } from "@elysiajs/openapi";
-import { UserRoutes, BlogRoutes, GenerateBlogRoutes, ProjectRoutes, ApiKeyRoutes, PublicBlogRoutes } from "src/backend";
+import { UserRoutes, BlogRoutes, GenerateBlogRoutes, ProjectRoutes, ApiKeyRoutes, PublicBlogRoutes, DashboardRoutes } from "src/backend";
 import { blogImagesRoute } from "src/backend/blogs/images.route";
 
 const handle: APIRoute = async (ctx) => {
@@ -33,7 +33,8 @@ const handle: APIRoute = async (ctx) => {
     .use(BlogRoutes())
     .use(ProjectRoutes())
     .use(ApiKeyRoutes())
-    .use(PublicBlogRoutes());
+    .use(PublicBlogRoutes())
+    .use(DashboardRoutes());
 
   return await app.handle(ctx.request);
 };

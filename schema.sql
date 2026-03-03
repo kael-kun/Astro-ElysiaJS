@@ -7,12 +7,13 @@
 -- ---------------------------------------------
 -- DROP EXISTING TABLES (for local development)
 -- ---------------------------------------------
-DROP TABLE IF EXISTS blog_logs;
-DROP TABLE IF EXISTS api_keys;
-DROP TABLE IF EXISTS blogs;
-DROP TABLE IF EXISTS projects;
+DROP TABLE IF EXISTS blog_views;    -- depends on blogs
+DROP TABLE IF EXISTS api_keys;      -- depends on projects
+DROP TABLE IF EXISTS activity_logs; -- new table
+DROP TABLE IF EXISTS blog_logs;     -- old table (if exists)
+DROP TABLE IF EXISTS blogs;         -- depends on users + projects
+DROP TABLE IF EXISTS projects;      -- depends on users
 DROP TABLE IF EXISTS users;
-
 -- ---------------------------------------------
 -- USERS TABLE
 -- ---------------------------------------------
@@ -67,20 +68,23 @@ CREATE INDEX idx_blogs_created_at ON blogs(created_at DESC);
 CREATE INDEX idx_blogs_project_id ON blogs(project_id);
 
 -- ---------------------------------------------
--- BLOG LOGS TABLE
+-- ACTIVITY LOGS TABLE (Unified logging for all entities)
 -- ---------------------------------------------
-CREATE TABLE blog_logs (
+CREATE TABLE activity_logs (
   id TEXT PRIMARY KEY,
-  blog_id TEXT,
   user_id TEXT NOT NULL,
-  action TEXT NOT NULL CHECK (action IN ('created', 'updated', 'published', 'deleted')),
+  entity_type TEXT NOT NULL CHECK (entity_type IN ('blog', 'project', 'user')),
+  entity_id TEXT NOT NULL,
+  entity_name TEXT,
+  action TEXT NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
   details TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE INDEX idx_blog_logs_blog_id ON blog_logs(blog_id);
-CREATE INDEX idx_blog_logs_user_id ON blog_logs(user_id);
-CREATE INDEX idx_blog_logs_created_at ON blog_logs(created_at DESC);
+CREATE INDEX idx_activity_logs_user_id ON activity_logs(user_id);
+CREATE INDEX idx_activity_logs_entity_type ON activity_logs(entity_type);
+CREATE INDEX idx_activity_logs_entity_id ON activity_logs(entity_id);
+CREATE INDEX idx_activity_logs_created_at ON activity_logs(created_at DESC);
 
 -- ---------------------------------------------
 -- API KEYS TABLE

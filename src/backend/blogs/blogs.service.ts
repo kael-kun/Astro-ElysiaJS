@@ -1,5 +1,5 @@
 import type { D1Database } from "@cloudflare/workers-types";
-import type { DbBlog, CreateBlogInput, UpdateBlogInput, DbBlogLog, CreateBlogLogInput, DbBlogView } from "./blogs.types";
+import type { DbBlog, CreateBlogInput, UpdateBlogInput, DbBlogView } from "./blogs.types";
 
 export interface BlogWithRelations extends DbBlog {
   project_name?: string;
@@ -199,50 +199,11 @@ export class BlogService {
   }
 
   async delete(id: string): Promise<void> {
-    // First delete related blog_logs
-    await this.db.prepare("DELETE FROM blog_logs WHERE blog_id = ?").bind(id).run();
-
-    // Then delete the blog
     const result = await this.db.prepare(`DELETE FROM blogs WHERE id = ?`).bind(id).run();
 
     if (!result.success) {
       throw new Error(`Failed to delete blog: ${result.error}`);
     }
-  }
-
-  async createLog(data: CreateBlogLogInput): Promise<DbBlogLog> {
-    const id = crypto.randomUUID();
-    const now = new Date().toISOString();
-
-    const result = await this.db
-      .prepare(
-        `INSERT INTO blog_logs (id, blog_id, user_id, action, details, created_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-      )
-      .bind(id, data.blog_id, data.user_id, data.action, data.details || null, now)
-      .run();
-
-    if (!result.success) {
-      throw new Error(`Failed to create blog log: ${result.error}`);
-    }
-
-    return {
-      id,
-      blog_id: data.blog_id,
-      user_id: data.user_id,
-      action: data.action,
-      details: data.details || null,
-      created_at: now,
-    };
-  }
-
-  async findLogsByBlogId(blogId: string): Promise<DbBlogLog[]> {
-    const result = await this.db
-      .prepare(`SELECT * FROM blog_logs WHERE blog_id = ? ORDER BY created_at DESC`)
-      .bind(blogId)
-      .all<DbBlogLog>();
-
-    return result.results;
   }
 
   async recordView(blogId: string, ipHash?: string, userAgent?: string, referer?: string): Promise<void> {
@@ -272,6 +233,55 @@ export class BlogService {
       .all<DbBlogView>();
 
     return result.results;
+  }
+
+  async getTotalViews(): Promise<{ total: number }> {
+    const result = await this.db.prepare(`SELECT COALESCE(SUM(view_count), 0) as total FROM blogs`).first<{ total: number }>();
+    return { total: result?.total ?? 0 };
+  }
+
+  async getTotalViewsByUserId(userId: string): Promise<{ total: number }> {
+    const result = await this.db
+      .prepare(`SELECT COALESCE(SUM(view_count), 0) as total FROM blogs WHERE user_id = ?`)
+      .bind(userId)
+      .first<{ total: number }>();
+    return { total: result?.total ?? 0 };
+  }
+
+  async createActivityLog(
+    userId: string,
+    entityType: "blog" | "project" | "user",
+    entityId: string,
+    entityName: string,
+    action: "created" | "updated" | "deleted",
+    details?: string,
+  ): Promise<void> {
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+
+    await this.db
+      .prepare(
+        `INSERT INTO activity_logs (id, user_id, entity_type, entity_id, entity_name, action, details, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(id, userId, entityType, entityId, entityName, action, details || null, now)
+      .run();
+  }
+
+  async getPublishedCountByUserId(userId: string): Promise<{ total: number }> {
+    const result = await this.db
+      .prepare(`SELECT COUNT(*) as total FROM blogs WHERE user_id = ? AND status = ?`)
+      .bind(userId, "published")
+      .first<{ total: number }>();
+    return { total: result?.total ?? 0 };
+  }
+
+  async getPublishedCount(): Promise<{ total: number }> {
+    const result = await this.db
+      .prepare(`SELECT COUNT(*) as total FROM blogs WHERE status = ?`)
+      .bind("published")
+      .first<{ total: number }>();
+    return { total: result?.total ?? 0 };
   }
 }
 
