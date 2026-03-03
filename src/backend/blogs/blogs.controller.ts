@@ -250,8 +250,7 @@ export const storeImage = async (image: File, env: Env): Promise<string> => {
 export async function deleteImageFromR2(imageUrl: string, env: Env): Promise<void> {
   if (!imageUrl) return;
 
-  const baseUrl = (env as any).IMAGE_PATH || "";
-  const path = imageUrl.startsWith(baseUrl) ? imageUrl.substring(baseUrl.length) : imageUrl;
+  const path = imageUrl.includes("/api/images/") ? imageUrl.substring(imageUrl.indexOf("/api/images/") + 12) : imageUrl;
 
   try {
     await env.CMS_BUCKET.delete(path);

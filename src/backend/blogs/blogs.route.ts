@@ -106,16 +106,23 @@ export function BlogRoutes() {
     })
     .put(
       "/blog/:id",
-      async ({ params, body, env, authUser }) => {
+      async ({ params, body, env, authUser, request }) => {
         if (!authUser) return errorResponse("Unauthorized", 401);
-        console.log(body);
+
+        let imageUrl: string | undefined;
+        if (body.image) {
+          const origin = new URL(request.url).origin;
+          const imageFileName = await storeImage(body.image, env);
+          imageUrl = `${origin}/api/images/${imageFileName}`;
+        }
+
         const blogData: UpdateBlogInput = {
           title: body.title,
           description: body.description,
           content: body.content,
           meta_description: body.meta_description,
           status: body.status as UpdateBlogInput["status"],
-          image: body.image,
+          image_url: imageUrl,
         };
         try {
           const blog = await updateBlog(params.id, blogData, env, authUser);
