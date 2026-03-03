@@ -144,7 +144,7 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit,
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
           error={errors.password}
-          helperText={user ? "Leave blank to keep current password" : "Minimum 6 characters"}
+          helperText={user ? "Leave blank to keep current password" : "Minimum 8 characters"}
         />
 
         <Select
