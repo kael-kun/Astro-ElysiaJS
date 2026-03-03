@@ -94,6 +94,10 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
     setStatus(e.target.value as "draft" | "published");
   };
 
+  const handleImageError = () => {
+    setPreviewImage(null);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -197,6 +201,7 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
             fileName={fileName}
             onFileUpload={handleFileUpload}
             onRemoveImage={removeImage}
+            onImageError={handleImageError}
           />
 
           <div className="p-6 border-b border-gray-200">

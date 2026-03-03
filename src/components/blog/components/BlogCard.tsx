@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import type { Blog } from "../hooks/useProjectBlogs";
@@ -10,6 +11,8 @@ interface BlogCardProps {
 }
 
 export function BlogCard({ blog, onDelete, showOwner }: BlogCardProps) {
+  const [imageError, setImageError] = useState(false);
+
   const handleView = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const projectId = urlParams.get("projectId");
@@ -31,15 +34,17 @@ export function BlogCard({ blog, onDelete, showOwner }: BlogCardProps) {
   };
 
   const isPublished = blog.status === "published";
+  const showImage = blog.image_url && !imageError;
 
   return (
     <Card className="h-full flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-200">
       <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0">
-        {blog.image_url ? (
+        {showImage ? (
           <img
-            src={blog.image_url}
+            src={blog.image_url!}
             alt={blog.title || "Blog image"}
             className="w-full h-full object-cover"
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

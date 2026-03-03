@@ -25,6 +25,7 @@ interface BlogViewContentProps {
 export function BlogViewContent({ blogId }: BlogViewContentProps) {
   const [blog, setBlog] = useState<BlogData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
 
   const { error: showError } = useToastContext();
 
@@ -112,8 +113,16 @@ export function BlogViewContent({ blogId }: BlogViewContentProps) {
 
         <article className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="relative h-64 md:h-96 w-full">
-            {blog.image_url ? (
-              <img src={blog.image_url} alt={blog.title || "Blog image"} className="w-full h-full object-cover" />
+            {blog.image_url && !imageError ? (
+              <>
+                <img
+                  src={blog.image_url}
+                  alt={blog.title || "Blog image"}
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+              </>
             ) : (
               <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                 <svg className="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +130,6 @@ export function BlogViewContent({ blogId }: BlogViewContentProps) {
                 </svg>
               </div>
             )}
-            {blog.image_url && <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>}
           </div>
 
           <div className="p-6 md:p-10">
