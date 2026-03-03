@@ -110,6 +110,8 @@ function convertHtmlToMarkdown(html: string): string {
 
 export function TiptapEditor({ content, onContentChange, height = "500px" }: TiptapEditorProps) {
   const isInitialContentSet = useRef(false);
+  const isInternalUpdate = useRef(false);
+  const previousContent = useRef<string | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -144,9 +146,13 @@ export function TiptapEditor({ content, onContentChange, height = "500px" }: Tip
     content: "",
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
+      isInternalUpdate.current = true;
       const html = editor.getHTML();
       const markdown = convertHtmlToMarkdown(html);
       onContentChange(markdown);
+      setTimeout(() => {
+        isInternalUpdate.current = false;
+      }, 0);
     },
   });
 
@@ -170,7 +176,32 @@ export function TiptapEditor({ content, onContentChange, height = "500px" }: Tip
         editor.commands.setContent(content);
       }
     }
+    previousContent.current = content;
   }, [editor]);
+
+  useEffect(() => {
+    if (!editor || isInternalUpdate.current) return;
+    if (previousContent.current === content) return;
+    if (!isInitialContentSet.current) return;
+
+    previousContent.current = content;
+    if (!content) {
+      editor.commands.clearContent();
+      return;
+    }
+
+    if (content.trim().startsWith("<")) {
+      editor.commands.setContent(content);
+    } else {
+      try {
+        const htmlContent = marked.parse(content) as string;
+        editor.commands.setContent(htmlContent || content);
+      } catch (error) {
+        console.error("Failed to parse markdown:", error);
+        editor.commands.setContent(content);
+      }
+    }
+  }, [editor, content]);
 
   const setLink = useCallback(() => {
     if (!editor) return;
