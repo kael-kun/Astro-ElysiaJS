@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import apiClient from "src/services/apiClient";
 
 // User types
 export interface User {
@@ -74,7 +75,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await apiClient.post("/api/logout");
+    } catch {}
     localStorage.removeItem("auth_token");
     localStorage.removeItem("user");
 

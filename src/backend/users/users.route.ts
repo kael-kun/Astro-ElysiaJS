@@ -56,9 +56,11 @@ export function UserRoutes() {
     )
     .post(
       "/login",
-      async ({ body, env }) => {
+      async ({ body, env, set }) => {
         try {
           const result = await loginUser(body.email, body.password, env);
+          set.headers["Set-Cookie"] =
+            `auth_token=${result.token}; HttpOnly; Secure; SameSite=Lax; Max-Age=86400; Path=/`;
           return result;
         } catch (err) {
           const message = err instanceof Error ? err.message : "Login failed";
@@ -72,6 +74,10 @@ export function UserRoutes() {
         }),
       },
     )
+    .post("/logout", async ({ set }) => {
+      set.headers["Set-Cookie"] = "auth_token=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/";
+      return { success: true };
+    })
     .onBeforeHandle(({ authUser }) => {
       if (!authUser) {
         return errorResponse("Unauthorized", 401);

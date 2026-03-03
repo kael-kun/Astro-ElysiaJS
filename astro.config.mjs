@@ -6,9 +6,6 @@ import react from "@astrojs/react";
 export default defineConfig({
   adapter: cloudflare({
     imageService: "compile",
-    workerEntryPoint: {
-      path: "src/cloudflare/worker.ts",
-    },
   }),
   output: "server",
   env: {

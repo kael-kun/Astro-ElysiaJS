@@ -3,7 +3,6 @@ import { Card, StatsCard } from "../ui";
 import { useAuth } from "src/providers/AuthProvider";
 export function DashboardContent() {
   const { user } = useAuth();
-  console.log("userrrrr here in dashboard", user);
   const stats = [
     {
       title: "Total Blogs",
