@@ -6,12 +6,13 @@ import Image from "@tiptap/extension-image";
 import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { marked } from "marked";
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 
 interface TiptapEditorProps {
   content: string;
   onContentChange: (content: string) => void;
   height?: string;
+  maxLength?: number;
 }
 
 function cleanHtmlContent(htmlContent: string): string {
@@ -108,10 +109,11 @@ function convertHtmlToMarkdown(html: string): string {
   return markdown.trim();
 }
 
-export function TiptapEditor({ content, onContentChange, height = "500px" }: TiptapEditorProps) {
+export function TiptapEditor({ content, onContentChange, height = "500px", maxLength = 20000 }: TiptapEditorProps) {
   const isInitialContentSet = useRef(false);
   const isInternalUpdate = useRef(false);
   const previousContent = useRef<string | null>(null);
+  const [isOverLimit, setIsOverLimit] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -149,6 +151,22 @@ export function TiptapEditor({ content, onContentChange, height = "500px" }: Tip
       isInternalUpdate.current = true;
       const html = editor.getHTML();
       const markdown = convertHtmlToMarkdown(html);
+      
+      // Check character limit
+      if (markdown.length > maxLength) {
+        setIsOverLimit(true);
+        // Truncate to exactly maxLength to prevent exceeding the limit
+        const truncatedMarkdown = markdown.slice(0, maxLength);
+        const truncatedHtml = marked.parse(truncatedMarkdown) as string;
+        editor.commands.setContent(truncatedHtml);
+        onContentChange(truncatedMarkdown);
+        setTimeout(() => {
+          isInternalUpdate.current = false;
+        }, 0);
+        return;
+      }
+      
+      setIsOverLimit(false);
       onContentChange(markdown);
       setTimeout(() => {
         isInternalUpdate.current = false;
@@ -486,7 +504,13 @@ export function TiptapEditor({ content, onContentChange, height = "500px" }: Tip
         </button>
       </div>
 
-      <div className="prose prose-sm max-w-none p-4 overflow-y-auto" style={{ height: `calc(${height} - 52px)` }}>
+      {isOverLimit && (
+        <div className="bg-red-50 border-b border-red-200 px-4 py-2 text-sm text-red-600">
+          Character limit exceeded ({maxLength.toLocaleString()} max). Please remove some content.
+        </div>
+      )}
+
+      <div className="prose prose-sm max-w-none p-4 overflow-y-auto" style={{ height: `calc(${height} - ${isOverLimit ? 84 : 52}px)` }}>
         <EditorContent editor={editor} />
       </div>
     </div>

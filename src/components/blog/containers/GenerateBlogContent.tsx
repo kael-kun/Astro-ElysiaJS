@@ -178,8 +178,8 @@ export function GenerateBlogContent() {
       showError("Meta description must be 500 characters or less");
       return;
     }
-    if (generatedContent.length > 50000) {
-      showError("Content must be 50,000 characters or less");
+    if (generatedContent.length > 20000) {
+      showError("Content must be 20,000 characters or less");
       return;
     }
 
@@ -240,8 +240,8 @@ export function GenerateBlogContent() {
       return;
     }
 
-    if (manualContent.length > 50000) {
-      showError("Content must be 50,000 characters or less");
+    if (manualContent.length > 20000) {
+      showError("Content must be 20,000 characters or less");
       return;
     }
 
@@ -441,7 +441,7 @@ export function GenerateBlogContent() {
                   onContentChange={setManualContent} 
                   height="500px" 
                 />
-                <p className="mt-2 text-sm text-gray-500">{manualContent.length}/50,000 characters</p>
+                <p className="mt-2 text-sm text-gray-500">{manualContent.length.toLocaleString()}/20,000 characters</p>
               </div>
 
               <BlogPreview
@@ -523,7 +523,7 @@ export function GenerateBlogContent() {
                     </div>
 
                     <TiptapEditor content={generatedContent} onContentChange={setGeneratedContent} height="500px" />
-                    <p className="mt-2 mx-6 text-sm text-gray-500">{generatedContent.length}/50,000 characters</p>
+                    <p className="mt-2 mx-6 text-sm text-gray-500">{generatedContent.length.toLocaleString()}/20,000 characters</p>
 
                     {/* Show loading indicator while generating */}
                     {generating && (

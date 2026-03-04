@@ -111,8 +111,8 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
     if (metaDescription.length > 500) {
       errors.metaDescription = "Meta description must be 500 characters or less";
     }
-    if (content.length > 50000) {
-      errors.content = "Content must be 50,000 characters or less";
+    if (content.length > 20000) {
+      errors.content = "Content must be 20,000 characters or less";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -276,7 +276,7 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
           <div className="p-6 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Content</h3>
             <TiptapEditor content={content} onContentChange={handleContentChange} height="500px" />
-            <p className="mt-2 text-sm text-gray-500">{content.length}/50,000 characters</p>
+            <p className="mt-2 text-sm text-gray-500">{content.length.toLocaleString()}/20,000 characters</p>
             {validationErrors.content && (
               <p className="mt-1 text-sm text-red-600">{validationErrors.content}</p>
             )}

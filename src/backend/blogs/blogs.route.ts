@@ -61,7 +61,7 @@ export function BlogRoutes() {
         body: t.Object({
           title: t.String({ maxLength: 200 }),
           description: t.String({ maxLength: 500 }),
-          content: t.String({ maxLength: 50000 }),
+          content: t.String({ maxLength: 20000 }),
           meta_description: t.Optional(t.String({ maxLength: 500 })),
           status: t.String({ enum: ["draft", "published"] }),
           image: t.Optional(t.File()),
@@ -128,7 +128,7 @@ export function BlogRoutes() {
         body: t.Object({
           title: t.Optional(t.String({ maxLength: 200 })),
           description: t.Optional(t.String({ maxLength: 500 })),
-          content: t.Optional(t.String({ maxLength: 50000 })),
+          content: t.Optional(t.String({ maxLength: 20000 })),
           meta_description: t.Optional(t.String({ maxLength: 500 })),
           status: t.Optional(t.String({ enum: ["draft", "published"] })),
           image: t.Optional(t.File()),
