@@ -36,7 +36,7 @@ STRICT RULES:
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt.trim() },
     ],
-    max_tokens: 600, // Increased slightly to ensure full generation
+    max_tokens: 600,
   });
 
   // 1. Extract text safely

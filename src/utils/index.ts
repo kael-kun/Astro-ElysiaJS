@@ -49,6 +49,10 @@ export const capitalize = (str: string): string => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
+export const countCharacters = (text: string): number => {
+  return text.replace(/\s/g, "").length;
+};
+
 export const capitalizeWords = (str: string): string => {
   return str
     .split(" ")

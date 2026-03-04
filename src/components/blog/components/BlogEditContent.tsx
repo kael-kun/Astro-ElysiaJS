@@ -108,8 +108,8 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
     if (description.length > 500) {
       errors.description = "Description must be 500 characters or less";
     }
-    if (metaDescription.length > 160) {
-      errors.metaDescription = "Meta description must be 160 characters or less";
+    if (metaDescription.length > 500) {
+      errors.metaDescription = "Meta description must be 500 characters or less";
     }
     if (content.length > 50000) {
       errors.content = "Content must be 50,000 characters or less";
@@ -254,7 +254,6 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
                   onChange={handleMetadataChange}
                   placeholder="Enter description"
                   maxLength={500}
-                  error={validationErrors.description}
                 />
                 <p className="mt-1 text-sm text-gray-500">{description.length}/500 characters</p>
               </div>
@@ -268,10 +267,9 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
                 value={metaDescription}
                 onChange={handleMetadataChange}
                 placeholder="Enter meta description"
-                maxLength={160}
-                error={validationErrors.metaDescription}
+                maxLength={500}
               />
-              <p className="mt-1 text-sm text-gray-500">{metaDescription.length}/160 characters</p>
+              <p className="mt-1 text-sm text-gray-500">{metaDescription.length}/500 characters</p>
             </div>
           </div>
 

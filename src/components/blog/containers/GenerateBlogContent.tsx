@@ -174,8 +174,8 @@ export function GenerateBlogContent() {
       showError("Description must be 500 characters or less");
       return;
     }
-    if (metaDescription.length > 160) {
-      showError("Meta description must be 160 characters or less");
+    if (metaDescription.length > 500) {
+      showError("Meta description must be 500 characters or less");
       return;
     }
     if (generatedContent.length > 50000) {
@@ -230,8 +230,8 @@ export function GenerateBlogContent() {
       return;
     }
 
-    if (metaDescription.length > 160) {
-      showError("Meta description must be 160 characters or less");
+    if (metaDescription.length > 500) {
+      showError("Meta description must be 500 characters or less");
       return;
     }
 
@@ -428,9 +428,9 @@ export function GenerateBlogContent() {
                     value={metaDescription}
                     onChange={handleMetadataChange}
                     placeholder="Enter meta description for SEO"
-                    maxLength={160}
+                    maxLength={500}
                   />
-                  <p className="mt-1 text-sm text-gray-500">{metaDescription.length}/160 characters</p>
+                  <p className="mt-1 text-sm text-gray-500">{metaDescription.length}/500 characters</p>
                 </div>
               </div>
 
@@ -516,9 +516,9 @@ export function GenerateBlogContent() {
                           value={metaDescription}
                           onChange={handleMetadataChange}
                           placeholder="Enter meta description"
-                          maxLength={160}
+                          maxLength={500}
                         />
-                        <p className="mt-1 text-sm text-gray-500">{metaDescription.length}/160 characters</p>
+                        <p className="mt-1 text-sm text-gray-500">{metaDescription.length}/500 characters</p>
                       </div>
                     </div>
 

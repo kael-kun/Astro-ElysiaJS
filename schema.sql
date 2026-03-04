@@ -97,8 +97,7 @@ CREATE TABLE api_keys (
   name TEXT NOT NULL,
   last_used_at TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  is_active INTEGER NOT NULL DEFAULT 1,
-  FOREIGN KEY (project_id) REFERENCES projects(id)
+  is_active INTEGER NOT NULL DEFAULT 1
 );
 
 CREATE INDEX idx_api_keys_project_id ON api_keys(project_id);
@@ -113,8 +112,7 @@ CREATE TABLE blog_views (
   ip_hash TEXT,
   user_agent TEXT,
   referer TEXT,
-  viewed_at TEXT NOT NULL DEFAULT (datetime('now')),
-  FOREIGN KEY (blog_id) REFERENCES blogs(id)
+  viewed_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE INDEX idx_blog_views_blog_id ON blog_views(blog_id);

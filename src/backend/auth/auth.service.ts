@@ -16,7 +16,7 @@ export async function createToken(payload: AuthUser, secretKey: string): Promise
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("1h")
+    .setExpirationTime("1d")
     .setSubject(payload.id)
     .sign(secretKeyBytes);
 }
@@ -59,7 +59,11 @@ export async function validatePassword(password: string, hash: string): Promise<
 export async function authenticateUser(
   email: string,
   password: string,
-  userService: { findByEmail(email: string): Promise<{ id: string; email: string; name: string; role: string; password_hash: string } | null> },
+  userService: {
+    findByEmail(
+      email: string,
+    ): Promise<{ id: string; email: string; name: string; role: string; password_hash: string } | null>;
+  },
   secretKey: string,
 ): Promise<{ user: AuthUser; token: string } | null> {
   if (!email || !password) {

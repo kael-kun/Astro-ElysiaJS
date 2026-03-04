@@ -45,11 +45,13 @@ export function GenerateBlogRoutes() {
       },
       {
         body: t.Object({
-          topic: t.String({ required: true }),
-          keywords: t.Optional(t.String()),
-          tone: t.String({ required: true }),
-          audience: t.String({ required: true }),
-          projectId: t.String({ required: true }),
+          topic: t.String({ maxLength: 200 }),
+          keywords: t.Optional(t.String({ maxLength: 500 })),
+          tone: t.String({
+            enum: ["professional", "casual", "technical", "friendly", "marketing", "academic", "conversational"],
+          }),
+          audience: t.String({ maxLength: 200 }),
+          projectId: t.String(),
         }),
       },
     )
@@ -80,11 +82,13 @@ export function GenerateBlogRoutes() {
       },
       {
         body: t.Object({
-          topic: t.String({ required: true }),
-          keywords: t.Optional(t.String()),
-          tone: t.String({ required: true }),
-          audience: t.String({ required: true }),
-          projectId: t.String({ required: true }),
+          topic: t.String({ maxLength: 200 }),
+          keywords: t.Optional(t.String({ maxLength: 500 })),
+          tone: t.String({
+            enum: ["professional", "casual", "technical", "friendly", "marketing", "academic", "conversational"],
+          }),
+          audience: t.String({ maxLength: 200 }),
+          projectId: t.String(),
         }),
       },
     );

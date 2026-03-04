@@ -59,13 +59,13 @@ export function BlogRoutes() {
       },
       {
         body: t.Object({
-          title: t.String({ required: true }),
-          description: t.String({ required: true }),
-          content: t.String({ required: true }),
-          meta_description: t.Optional(t.String()),
-          status: t.String({ enum: ["draft", "published"], required: true }),
+          title: t.String({ maxLength: 200 }),
+          description: t.String({ maxLength: 500 }),
+          content: t.String({ maxLength: 50000 }),
+          meta_description: t.Optional(t.String({ maxLength: 500 })),
+          status: t.String({ enum: ["draft", "published"] }),
           image: t.Optional(t.File()),
-          project_id: t.String({ required: true }),
+          project_id: t.String(),
         }),
       },
     )
@@ -126,10 +126,10 @@ export function BlogRoutes() {
       },
       {
         body: t.Object({
-          title: t.Optional(t.String()),
-          description: t.Optional(t.String()),
-          content: t.Optional(t.String()),
-          meta_description: t.Optional(t.String()),
+          title: t.Optional(t.String({ maxLength: 200 })),
+          description: t.Optional(t.String({ maxLength: 500 })),
+          content: t.Optional(t.String({ maxLength: 50000 })),
+          meta_description: t.Optional(t.String({ maxLength: 500 })),
           status: t.Optional(t.String({ enum: ["draft", "published"] })),
           image: t.Optional(t.File()),
         }),

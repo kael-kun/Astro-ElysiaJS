@@ -47,8 +47,8 @@ export function ProjectRoutes() {
       },
       {
         body: t.Object({
-          name: t.String({ required: true }),
-          description: t.Optional(t.String()),
+          name: t.String({ maxLength: 100 }),
+          description: t.Optional(t.String({ maxLength: 500 })),
         }),
       },
     )
@@ -99,8 +99,8 @@ export function ProjectRoutes() {
       },
       {
         body: t.Object({
-          name: t.Optional(t.String()),
-          description: t.Optional(t.String()),
+          name: t.Optional(t.String({ maxLength: 100 })),
+          description: t.Optional(t.String({ maxLength: 500 })),
         }),
       },
     )

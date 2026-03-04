@@ -46,7 +46,7 @@ export function ApiKeyRoutes() {
       },
       {
         body: t.Object({
-          name: t.String({ required: true }),
+          name: t.String({ maxLength: 100 }),
         }),
       },
     )

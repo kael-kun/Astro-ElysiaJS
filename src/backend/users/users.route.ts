@@ -47,9 +47,9 @@ export function UserRoutes() {
       },
       {
         body: t.Object({
-          email: t.String({ required: true }),
-          password: t.String({ required: true }),
-          name: t.String({ required: true }),
+          email: t.String({ maxLength: 255 }),
+          password: t.String({ minLength: 6, maxLength: 128 }),
+          name: t.String({ maxLength: 100 }),
           role: t.Optional(t.String({ enum: ["admin", "client"] })),
         }),
       },
@@ -69,8 +69,8 @@ export function UserRoutes() {
       },
       {
         body: t.Object({
-          email: t.String({ required: true }),
-          password: t.String({ required: true }),
+          email: t.String({ maxLength: 255 }),
+          password: t.String({ minLength: 6, maxLength: 128 }),
         }),
       },
     )
@@ -104,9 +104,9 @@ export function UserRoutes() {
       },
       {
         body: t.Object({
-          email: t.String({ required: true }),
-          password: t.String({ required: true }),
-          name: t.String({ required: true }),
+          email: t.String({ maxLength: 255 }),
+          password: t.String({ minLength: 6, maxLength: 128 }),
+          name: t.String({ maxLength: 100 }),
           role: t.Optional(t.String({ enum: ["admin", "client"] })),
         }),
       },
@@ -173,9 +173,9 @@ export function UserRoutes() {
       },
       {
         body: t.Object({
-          email: t.Optional(t.String()),
-          name: t.Optional(t.String()),
-          password: t.Optional(t.String()),
+          email: t.Optional(t.String({ maxLength: 255 })),
+          name: t.Optional(t.String({ maxLength: 100 })),
+          password: t.Optional(t.String({ minLength: 6, maxLength: 128 })),
           role: t.Optional(t.String({ enum: ["admin", "client"] })),
         }),
       },
