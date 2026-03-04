@@ -43,12 +43,24 @@ export function BlogContent({ projectId }: BlogContentProps) {
       setValidationError("Topic is required");
       return;
     }
+    if (form.topic.length > 200) {
+      setValidationError("Topic must be 200 characters or less");
+      return;
+    }
     if (!form.keywords.trim()) {
       setValidationError("Keywords are required");
       return;
     }
+    if (form.keywords.length > 500) {
+      setValidationError("Keywords must be 500 characters or less");
+      return;
+    }
     if (!form.audience.trim()) {
       setValidationError("Target audience is required");
+      return;
+    }
+    if (form.audience.length > 200) {
+      setValidationError("Target audience must be 200 characters or less");
       return;
     }
     if (!form.tone.trim()) {

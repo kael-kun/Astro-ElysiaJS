@@ -34,7 +34,13 @@ export function ApiIntegrationModal({ isOpen, onClose, projectId, projectName }:
   }, [isOpen, projectId, fetchApiKeys]);
 
   const handleCreateKey = async () => {
-    if (!newKeyName.trim()) return;
+    if (!newKeyName.trim()) {
+      return;
+    }
+    if (newKeyName.length > 100) {
+      showError("API key name must be 100 characters or less");
+      return;
+    }
 
     setIsCreating(true);
     try {
@@ -102,17 +108,23 @@ export function ApiIntegrationModal({ isOpen, onClose, projectId, projectName }:
                 </p>
               </div>
             ) : (
-              <div className="flex gap-2">
-                <Input
-                  id="keyName"
-                  placeholder="e.g., Production API"
-                  value={newKeyName}
-                  onChange={(e) => setNewKeyName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleCreateKey()}
-                />
-                <Button variant="primary" onClick={handleCreateKey} disabled={!newKeyName.trim() || isCreating}>
-                  {isCreating ? "Creating..." : "Generate"}
-                </Button>
+              <div className="space-y-1">
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Input
+                      id="keyName"
+                      placeholder="e.g., Production API"
+                      value={newKeyName}
+                      onChange={(e) => setNewKeyName(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleCreateKey()}
+                      maxLength={100}
+                    />
+                  </div>
+                  <Button variant="primary" onClick={handleCreateKey} disabled={!newKeyName.trim() || isCreating}>
+                    {isCreating ? "Creating..." : "Generate"}
+                  </Button>
+                </div>
+                <p className="text-sm text-gray-500">{newKeyName.length}/100 characters</p>
               </div>
             )}
           </div>

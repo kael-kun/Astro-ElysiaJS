@@ -1,6 +1,13 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type { DbBlog, CreateBlogInput, UpdateBlogInput, DbBlogView } from "./blogs.types";
 
+const VALIDATION = {
+  title: { maxLength: 200 },
+  description: { maxLength: 500 },
+  meta_description: { maxLength: 160 },
+  content: { maxLength: 50000 },
+};
+
 export interface BlogWithRelations extends DbBlog {
   project_name?: string;
   user_name?: string;
@@ -9,7 +16,38 @@ export interface BlogWithRelations extends DbBlog {
 export class BlogService {
   constructor(private db: D1Database) {}
 
+  private validateTitle(title: string | undefined): void {
+    if (title && title.length > VALIDATION.title.maxLength) {
+      throw new Error(`Title must be ${VALIDATION.title.maxLength} characters or less`);
+    }
+  }
+
+  private validateDescription(description: string | undefined): void {
+    if (description && description.length > VALIDATION.description.maxLength) {
+      throw new Error(`Description must be ${VALIDATION.description.maxLength} characters or less`);
+    }
+  }
+
+  private validateMetaDescription(metaDescription: string | undefined): void {
+    if (metaDescription && metaDescription.length > VALIDATION.meta_description.maxLength) {
+      throw new Error(`Meta description must be ${VALIDATION.meta_description.maxLength} characters or less`);
+    }
+  }
+
+  private validateContent(content: string): void {
+    if (!content || !content.trim()) {
+      throw new Error("Content is required");
+    }
+    if (content.length > VALIDATION.content.maxLength) {
+      throw new Error(`Content must be ${VALIDATION.content.maxLength} characters or less`);
+    }
+  }
+
   async create(data: CreateBlogInput): Promise<DbBlog> {
+    this.validateTitle(data.title);
+    this.validateDescription(data.description);
+    this.validateMetaDescription(data.meta_description);
+    this.validateContent(data.content);
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
     let imageUrl: string | null = null;
@@ -162,6 +200,19 @@ export class BlogService {
     const existing = await this.findById(id);
     if (!existing) {
       throw new Error("Blog not found");
+    }
+
+    if (data.title !== undefined) {
+      this.validateTitle(data.title);
+    }
+    if (data.description !== undefined) {
+      this.validateDescription(data.description);
+    }
+    if (data.meta_description !== undefined) {
+      this.validateMetaDescription(data.meta_description);
+    }
+    if (data.content !== undefined) {
+      this.validateContent(data.content);
     }
 
     const updated = {

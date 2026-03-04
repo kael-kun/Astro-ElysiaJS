@@ -77,6 +77,15 @@ export async function createProject(data: CreateProjectInput, env: Env, authUser
   }
 
   const projectService = createProjectService(env);
+
+  // Check project limit for client users
+  if (authUser.role === "client") {
+    const projectCount = await projectService.getProjectCountByUserId(authUser.id);
+    if (projectCount >= 5) {
+      throw new Error("Client users can only create up to 5 projects. Please delete an existing project to create a new one.");
+    }
+  }
+
   const project = await projectService.create(authUser.id, data);
 
   await projectService.createActivityLog(

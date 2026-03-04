@@ -15,6 +15,7 @@ import type { Project, CreateProjectInput, UpdateProjectInput } from "../types/p
 export function ProjectsContent() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const isClient = user?.role === "client";
 
   const {
     projects,
@@ -29,6 +30,8 @@ export function ProjectsContent() {
     deleteProject,
     setPage,
   } = useProjects();
+
+  const hasReachedProjectLimit = isClient && totalProjects >= 5;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -152,12 +155,18 @@ export function ProjectsContent() {
             {isAdmin ? "Manage all client projects and their blogs" : "Manage your projects and organize your blogs"}
           </p>
         </div>
-        <Button onClick={handleAddProject} variant="primary">
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          New Project
-        </Button>
+        {hasReachedProjectLimit ? (
+          <div className="text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-lg">
+            You have reached the maximum of 5 projects
+          </div>
+        ) : (
+          <Button onClick={handleAddProject} variant="primary">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Project
+          </Button>
+        )}
       </div>
 
       {error && <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">{error}</div>}

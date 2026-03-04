@@ -35,6 +35,7 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
   const [blog, setBlog] = useState<BlogData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -99,6 +100,28 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
   };
 
   const handleSave = async () => {
+    const errors: Record<string, string> = {};
+
+    if (title.length > 200) {
+      errors.title = "Title must be 200 characters or less";
+    }
+    if (description.length > 500) {
+      errors.description = "Description must be 500 characters or less";
+    }
+    if (metaDescription.length > 160) {
+      errors.metaDescription = "Meta description must be 160 characters or less";
+    }
+    if (content.length > 50000) {
+      errors.content = "Content must be 50,000 characters or less";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      showError("Please fix validation errors before saving");
+      return;
+    }
+
+    setValidationErrors({});
     setSaving(true);
     try {
       const formData = new FormData();
@@ -216,7 +239,10 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
                   value={title}
                   onChange={handleMetadataChange}
                   placeholder="Enter title"
+                  maxLength={200}
+                  error={validationErrors.title}
                 />
+                <p className="mt-1 text-sm text-gray-500">{title.length}/200 characters</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -227,7 +253,10 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
                   value={description}
                   onChange={handleMetadataChange}
                   placeholder="Enter description"
+                  maxLength={500}
+                  error={validationErrors.description}
                 />
+                <p className="mt-1 text-sm text-gray-500">{description.length}/500 characters</p>
               </div>
             </div>
             <div className="mt-4">
@@ -239,13 +268,20 @@ export function BlogEditContent({ blogId }: BlogEditContentProps) {
                 value={metaDescription}
                 onChange={handleMetadataChange}
                 placeholder="Enter meta description"
+                maxLength={160}
+                error={validationErrors.metaDescription}
               />
+              <p className="mt-1 text-sm text-gray-500">{metaDescription.length}/160 characters</p>
             </div>
           </div>
 
           <div className="p-6 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Content</h3>
             <TiptapEditor content={content} onContentChange={handleContentChange} height="500px" />
+            <p className="mt-2 text-sm text-gray-500">{content.length}/50,000 characters</p>
+            {validationErrors.content && (
+              <p className="mt-1 text-sm text-red-600">{validationErrors.content}</p>
+            )}
           </div>
 
           <BlogPreview

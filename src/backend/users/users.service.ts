@@ -1,10 +1,55 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type { DbUser, CreateUserInput, UpdateUserInput } from "./users.types";
 
+const VALIDATION = {
+  name: { minLength: 1, maxLength: 100 },
+  password: { minLength: 6, maxLength: 128 },
+  email: { maxLength: 255 },
+};
+
 export class UserService {
   constructor(private db: D1Database) {}
 
+  private validateName(name: string): void {
+    if (!name || !name.trim()) {
+      throw new Error("Name is required");
+    }
+    if (name.length > VALIDATION.name.maxLength) {
+      throw new Error(`Name must be ${VALIDATION.name.maxLength} characters or less`);
+    }
+  }
+
+  private validatePassword(password: string, isRequired = false): void {
+    if (isRequired && !password) {
+      throw new Error("Password is required");
+    }
+    if (password) {
+      if (password.length < VALIDATION.password.minLength) {
+        throw new Error(`Password must be at least ${VALIDATION.password.minLength} characters`);
+      }
+      if (password.length > VALIDATION.password.maxLength) {
+        throw new Error(`Password must be ${VALIDATION.password.maxLength} characters or less`);
+      }
+    }
+  }
+
+  private validateEmail(email: string): void {
+    if (!email || !email.trim()) {
+      throw new Error("Email is required");
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error("Please enter a valid email address");
+    }
+    if (email.length > VALIDATION.email.maxLength) {
+      throw new Error(`Email must be ${VALIDATION.email.maxLength} characters or less`);
+    }
+  }
+
   async create(data: CreateUserInput): Promise<DbUser> {
+    this.validateName(data.name);
+    this.validateEmail(data.email);
+    this.validatePassword(data.password, true);
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
 
@@ -59,6 +104,16 @@ export class UserService {
     const existing = await this.findById(id);
     if (!existing) {
       throw new Error("User not found");
+    }
+
+    if (data.name !== undefined) {
+      this.validateName(data.name);
+    }
+    if (data.email !== undefined) {
+      this.validateEmail(data.email);
+    }
+    if (data.password !== undefined) {
+      this.validatePassword(data.password, false);
     }
 
     const hasPasswordUpdate = data.password !== undefined;

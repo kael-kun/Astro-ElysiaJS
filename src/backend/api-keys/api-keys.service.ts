@@ -1,6 +1,10 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type { DbApiKey, CreateApiKeyInput, ApiKeyResponse, ApiKeyWithFullKey } from "./api-keys.types";
 
+const VALIDATION = {
+  name: { minLength: 1, maxLength: 100 },
+};
+
 function generateApiKey(): string {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let result = "pk_live_";
@@ -27,7 +31,17 @@ function getKeyPrefix(key: string): string {
 export class ApiKeyService {
   constructor(private db: D1Database) {}
 
+  private validateName(name: string): void {
+    if (!name || !name.trim()) {
+      throw new Error("API key name is required");
+    }
+    if (name.length > VALIDATION.name.maxLength) {
+      throw new Error(`API key name must be ${VALIDATION.name.maxLength} characters or less`);
+    }
+  }
+
   async create(data: CreateApiKeyInput): Promise<ApiKeyWithFullKey> {
+    this.validateName(data.name);
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
     const fullKey = generateApiKey();

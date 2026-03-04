@@ -59,6 +59,8 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit,
 
     if (!name.trim()) {
       newErrors.name = "Name is required";
+    } else if (name.length > 100) {
+      newErrors.name = "Name must be 100 characters or less";
     }
 
     if (!email.trim()) {
@@ -69,8 +71,12 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit,
 
     if (!user && !password) {
       newErrors.password = "Password is required for new users";
-    } else if (password && password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    } else if (password) {
+      if (password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters";
+      } else if (password.length > 128) {
+        newErrors.password = "Password must be 128 characters or less";
+      }
     }
 
     setErrors(newErrors);
@@ -123,6 +129,8 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit,
           required
           error={errors.name}
           autoFocus
+          maxLength={100}
+          helperText={`${name.length}/100 characters`}
         />
 
         <Input
@@ -144,7 +152,8 @@ export const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, onSubmit,
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
           error={errors.password}
-          helperText={user ? "Leave blank to keep current password" : "Minimum 8 characters"}
+          helperText={user ? "Leave blank to keep current password (6-128 chars)" : "6-128 characters"}
+          maxLength={128}
         />
 
         <Select

@@ -1,10 +1,32 @@
 import type { D1Database } from "@cloudflare/workers-types";
 import type { DbProject, CreateProjectInput, UpdateProjectInput } from "./projects.types";
 
+const VALIDATION = {
+  name: { minLength: 1, maxLength: 100 },
+  description: { maxLength: 500 },
+};
+
 export class ProjectService {
   constructor(private db: D1Database) {}
 
+  private validateName(name: string): void {
+    if (!name || !name.trim()) {
+      throw new Error("Project name is required");
+    }
+    if (name.length > VALIDATION.name.maxLength) {
+      throw new Error(`Project name must be ${VALIDATION.name.maxLength} characters or less`);
+    }
+  }
+
+  private validateDescription(description: string | undefined): void {
+    if (description && description.length > VALIDATION.description.maxLength) {
+      throw new Error(`Description must be ${VALIDATION.description.maxLength} characters or less`);
+    }
+  }
+
   async create(userId: string, data: CreateProjectInput): Promise<DbProject> {
+    this.validateName(data.name);
+    this.validateDescription(data.description);
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
 
@@ -33,6 +55,14 @@ export class ProjectService {
   async findById(id: string): Promise<DbProject | null> {
     const result = await this.db.prepare(`SELECT * FROM projects WHERE id = ?`).bind(id).first<DbProject>();
     return result || null;
+  }
+
+  async getProjectCountByUserId(userId: string): Promise<number> {
+    const countResult = await this.db
+      .prepare("SELECT COUNT(*) as total FROM projects WHERE user_id = ?")
+      .bind(userId)
+      .first<{ total: number }>();
+    return countResult?.total ?? 0;
   }
 
   async findByUserId(
@@ -85,6 +115,13 @@ export class ProjectService {
     const existing = await this.findById(id);
     if (!existing) {
       throw new Error("Project not found");
+    }
+
+    if (data.name !== undefined) {
+      this.validateName(data.name);
+    }
+    if (data.description !== undefined) {
+      this.validateDescription(data.description);
     }
 
     const updated = {

@@ -37,6 +37,12 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
 
     if (!name.trim()) {
       newErrors.name = "Project name is required";
+    } else if (name.length > 100) {
+      newErrors.name = "Project name must be 100 characters or less";
+    }
+
+    if (description.length > 500) {
+      newErrors.description = "Description must be 500 characters or less";
     }
 
     setErrors(newErrors);
@@ -85,6 +91,8 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
           required
           error={errors.name}
           autoFocus
+          maxLength={100}
+          helperText={`${name.length}/100 characters`}
         />
 
         <div>
@@ -97,8 +105,11 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe your project..."
             rows={3}
+            maxLength={500}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors"
           />
+          <p className="mt-1 text-sm text-gray-500">{description.length}/500 characters</p>
+          {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
         </div>
 
         {error && <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{error}</div>}

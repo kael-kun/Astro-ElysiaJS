@@ -166,6 +166,23 @@ export function GenerateBlogContent() {
   const handleSaveBlog = async () => {
     if (!generatedContent || !projectId) return;
 
+    if (title.length > 200) {
+      showError("Title must be 200 characters or less");
+      return;
+    }
+    if (description.length > 500) {
+      showError("Description must be 500 characters or less");
+      return;
+    }
+    if (metaDescription.length > 160) {
+      showError("Meta description must be 160 characters or less");
+      return;
+    }
+    if (generatedContent.length > 50000) {
+      showError("Content must be 50,000 characters or less");
+      return;
+    }
+
     setSaving(true);
     try {
       const formData = new FormData();
@@ -203,8 +220,28 @@ export function GenerateBlogContent() {
       return;
     }
 
+    if (title.length > 200) {
+      showError("Title must be 200 characters or less");
+      return;
+    }
+
+    if (description.length > 500) {
+      showError("Description must be 500 characters or less");
+      return;
+    }
+
+    if (metaDescription.length > 160) {
+      showError("Meta description must be 160 characters or less");
+      return;
+    }
+
     if (!manualContent.trim()) {
       showError("Content is required");
+      return;
+    }
+
+    if (manualContent.length > 50000) {
+      showError("Content must be 50,000 characters or less");
       return;
     }
 
@@ -364,7 +401,9 @@ export function GenerateBlogContent() {
                       onChange={handleMetadataChange}
                       placeholder="Enter blog title"
                       required
+                      maxLength={200}
                     />
+                    <p className="mt-1 text-sm text-gray-500">{title.length}/200 characters</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -375,7 +414,9 @@ export function GenerateBlogContent() {
                       value={description}
                       onChange={handleMetadataChange}
                       placeholder="Enter short description"
+                      maxLength={500}
                     />
+                    <p className="mt-1 text-sm text-gray-500">{description.length}/500 characters</p>
                   </div>
                 </div>
                 <div className="mt-4">
@@ -387,7 +428,9 @@ export function GenerateBlogContent() {
                     value={metaDescription}
                     onChange={handleMetadataChange}
                     placeholder="Enter meta description for SEO"
+                    maxLength={160}
                   />
+                  <p className="mt-1 text-sm text-gray-500">{metaDescription.length}/160 characters</p>
                 </div>
               </div>
 
@@ -398,6 +441,7 @@ export function GenerateBlogContent() {
                   onContentChange={setManualContent} 
                   height="500px" 
                 />
+                <p className="mt-2 text-sm text-gray-500">{manualContent.length}/50,000 characters</p>
               </div>
 
               <BlogPreview
@@ -445,7 +489,9 @@ export function GenerateBlogContent() {
                             value={title}
                             onChange={handleMetadataChange}
                             placeholder="Enter title"
+                            maxLength={200}
                           />
+                          <p className="mt-1 text-sm text-gray-500">{title.length}/200 characters</p>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
@@ -456,7 +502,9 @@ export function GenerateBlogContent() {
                             value={description}
                             onChange={handleMetadataChange}
                             placeholder="Enter description"
+                            maxLength={500}
                           />
+                          <p className="mt-1 text-sm text-gray-500">{description.length}/500 characters</p>
                         </div>
                       </div>
                       <div className="mt-4">
@@ -468,11 +516,14 @@ export function GenerateBlogContent() {
                           value={metaDescription}
                           onChange={handleMetadataChange}
                           placeholder="Enter meta description"
+                          maxLength={160}
                         />
+                        <p className="mt-1 text-sm text-gray-500">{metaDescription.length}/160 characters</p>
                       </div>
                     </div>
 
                     <TiptapEditor content={generatedContent} onContentChange={setGeneratedContent} height="500px" />
+                    <p className="mt-2 mx-6 text-sm text-gray-500">{generatedContent.length}/50,000 characters</p>
 
                     {/* Show loading indicator while generating */}
                     {generating && (

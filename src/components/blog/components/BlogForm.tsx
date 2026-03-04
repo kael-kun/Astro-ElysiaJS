@@ -32,39 +32,51 @@ export function BlogForm({ form, loading, error, validationError, onChange, onSu
     <Card shadow="lg" rounded="xl" className="p-6 md:p-8">
       <form onSubmit={onSubmit}>
         <div className="space-y-6">
-          <Input
-            id="topic"
-            name="topic"
-            type="text"
-            label="Topic"
-            value={form.topic}
-            onChange={onChange}
-            placeholder="e.g., The Future of AI in Content Creation"
-            required
-          />
+          <div>
+            <Input
+              id="topic"
+              name="topic"
+              type="text"
+              label="Topic"
+              value={form.topic}
+              onChange={onChange}
+              placeholder="e.g., The Future of AI in Content Creation"
+              required
+              maxLength={200}
+            />
+            <p className="mt-1 text-sm text-gray-500">{form.topic.length}/200 characters</p>
+          </div>
 
-          <Input
-            id="keywords"
-            name="keywords"
-            type="text"
-            label="Keywords"
-            value={form.keywords}
-            onChange={onChange}
-            placeholder="e.g., AI, content marketing, automation"
-            helperText="Separate keywords with commas"
-            required
-          />
+          <div>
+            <Input
+              id="keywords"
+              name="keywords"
+              type="text"
+              label="Keywords"
+              value={form.keywords}
+              onChange={onChange}
+              placeholder="e.g., AI, content marketing, automation"
+              helperText="Separate keywords with commas"
+              required
+              maxLength={500}
+            />
+            <p className="mt-1 text-sm text-gray-500">{form.keywords.length}/500 characters</p>
+          </div>
 
-          <Input
-            id="audience"
-            name="audience"
-            type="text"
-            label="Target Audience"
-            value={form.audience}
-            onChange={onChange}
-            placeholder="e.g., Marketing professionals, business owners"
-            required
-          />
+          <div>
+            <Input
+              id="audience"
+              name="audience"
+              type="text"
+              label="Target Audience"
+              value={form.audience}
+              onChange={onChange}
+              placeholder="e.g., Marketing professionals, business owners"
+              required
+              maxLength={200}
+            />
+            <p className="mt-1 text-sm text-gray-500">{form.audience.length}/200 characters</p>
+          </div>
 
           <Select
             id="tone"
