@@ -11,7 +11,6 @@ import {
   createUserForTesting,
 } from "./users.controller";
 import type { CreateUserInput, UpdateUserInput } from "./users.types";
-import { rateLimiter } from "../ratelimit/rate-limiter";
 function errorResponse(message: string, status: number) {
   return new Response(JSON.stringify({ error: message }), {
     status,
@@ -23,7 +22,6 @@ export function UserRoutes() {
   const app = new Elysia();
   app
     .use(typedEnv)
-    .use(rateLimiter())
     .derive(async ({ env, request }) => {
       const authHeader = request.headers.get("Authorization");
       const authUser = await parseAuthToken(authHeader ?? undefined, env);

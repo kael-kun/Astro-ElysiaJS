@@ -12,6 +12,7 @@ import {
   DashboardRoutes,
 } from "src/backend";
 import { blogImagesRoute } from "src/backend/blogs/images.route";
+import { rateLimiter } from "src/backend/ratelimit/rate-limiter";
 
 const handle: APIRoute = async (ctx) => {
   const app = new Elysia({
@@ -19,7 +20,9 @@ const handle: APIRoute = async (ctx) => {
     adapter: CloudflareAdapter,
     aot: false,
     normalize: true,
-  }).use(openapi());
+  })
+    .use(openapi())
+    .use(rateLimiter());
   app
     .decorate({
       env: ctx.locals.runtime.env,

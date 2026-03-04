@@ -3,7 +3,6 @@ import { typedEnv } from "src/types/elysia";
 import { parseAuthToken } from "../users/users.controller";
 import { createBlog, getBlogById, getBlogs, updateBlog, deleteBlog, publishBlog, storeImage } from "./blogs.controller";
 import type { CreateBlogInput, UpdateBlogInput } from "./blogs.types";
-import { rateLimiter } from "../ratelimit/rate-limiter";
 
 function errorResponse(message: string, status: number) {
   return new Response(JSON.stringify({ error: message }), {
@@ -16,7 +15,6 @@ export function BlogRoutes() {
   const app = new Elysia();
   app
     .use(typedEnv)
-    .use(rateLimiter())
     .derive(async ({ env, request }) => {
       const authHeader = request.headers.get("Authorization");
       const authUser = await parseAuthToken(authHeader ?? undefined, env);

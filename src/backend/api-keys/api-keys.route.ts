@@ -2,7 +2,6 @@ import Elysia, { t } from "elysia";
 import { typedEnv } from "src/types/elysia";
 import { createApiKey, getApiKeys, deleteApiKey } from "./api-keys.controller";
 import { parseAuthToken } from "../users/users.controller";
-import { rateLimiter } from "../ratelimit/rate-limiter";
 
 function errorResponse(message: string, status: number) {
   return new Response(JSON.stringify({ error: message }), {
@@ -16,7 +15,6 @@ export function ApiKeyRoutes() {
 
   app
     .use(typedEnv)
-    .use(rateLimiter())
     .derive(async ({ env, request }) => {
       const authHeader = request.headers.get("Authorization");
       const authUser = await parseAuthToken(authHeader ?? undefined, env);
