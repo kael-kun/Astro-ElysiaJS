@@ -85,6 +85,10 @@ async function authenticatedFetch(input: string, init: RequestInit = {}): Promis
         throw new Error("Internal server error");
       }
 
+      if (response.status === 429) {
+        window.dispatchEvent(new CustomEvent("rate-limit-exceeded"));
+      }
+
       throw new Error(errorMessage);
     }
 

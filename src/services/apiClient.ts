@@ -44,6 +44,10 @@ apiClient.interceptors.response.use(
       console.error("Server error occurred");
     }
 
+    if (error.response?.status === 429) {
+      window.dispatchEvent(new CustomEvent("rate-limit-exceeded"));
+    }
+
     return Promise.reject(error);
   },
 );
