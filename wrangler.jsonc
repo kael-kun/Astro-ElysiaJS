@@ -33,5 +33,5 @@
       "binding": "CMS_BUCKET",
       "bucket_name": "cms-bucket",
     },
-  ],
+  ],"env": {"staging":{"name":"astro-elysia-preview"}},
 }
