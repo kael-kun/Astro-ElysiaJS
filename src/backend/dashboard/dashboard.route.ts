@@ -112,14 +112,20 @@ export async function getDashboardLogs(
     params.push(authUser.id);
   }
 
-  logsQuery += isAdmin ? " ORDER BY al.created_at DESC LIMIT ? OFFSET ?" : " ORDER BY al.created_at DESC LIMIT ? OFFSET ?";
+  logsQuery += isAdmin
+    ? " ORDER BY al.created_at DESC LIMIT ? OFFSET ?"
+    : " ORDER BY al.created_at DESC LIMIT ? OFFSET ?";
   params.push(limit, offset);
 
-  const countResult = await env.DB.prepare(countQuery).bind(...(isAdmin ? [] : [authUser.id])).first<{ total: number }>();
+  const countResult = await env.DB.prepare(countQuery)
+    .bind(...(isAdmin ? [] : [authUser.id]))
+    .first<{ total: number }>();
   const total = countResult?.total ?? 0;
   const totalPages = Math.ceil(total / limit);
 
-  const result = await env.DB.prepare(logsQuery).bind(...params).all<DashboardLog>();
+  const result = await env.DB.prepare(logsQuery)
+    .bind(...params)
+    .all<DashboardLog>();
 
   return {
     logs: result.results,
@@ -145,6 +151,7 @@ export function DashboardRoutes() {
     })
     .get("/stats", async ({ env, authUser }) => {
       if (!authUser) return errorResponse("Unauthorized", 401);
+
       try {
         const stats = await getDashboardStats(env, authUser);
         return stats;

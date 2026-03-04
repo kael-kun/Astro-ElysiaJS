@@ -8,6 +8,16 @@
     "directory": "./dist",
     "binding": "ASSETS",
   },
+  "ratelimits": [
+    {
+      "name": "MY_RATE_LIMITER",
+      "namespace_id": "1999",
+      "simple": {
+        "limit": 10,
+        "period": 60,
+      },
+    },
+  ],
   "ai": {
     "binding": "AI",
   },
