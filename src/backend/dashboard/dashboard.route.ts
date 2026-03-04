@@ -4,6 +4,7 @@ import { parseAuthToken } from "../users/users.controller";
 import { createBlogService } from "../blogs/blogs.service";
 import { createProjectService } from "../projects/projects.service";
 import { createUserService } from "../users/users.service";
+import { rateLimiter } from "../ratelimit/rate-limiter";
 
 function errorResponse(message: string, status: number) {
   return new Response(JSON.stringify({ error: message }), {
@@ -139,6 +140,7 @@ export function DashboardRoutes() {
   const app = new Elysia();
   app
     .use(typedEnv)
+    .use(rateLimiter())
     .derive(async ({ env, request }) => {
       const authHeader = request.headers.get("Authorization");
       const authUser = await parseAuthToken(authHeader ?? undefined, env);

@@ -2,6 +2,7 @@ import Elysia, { t } from "elysia";
 import { typedEnv } from "src/types/elysia";
 import { createApiKey, getApiKeys, deleteApiKey } from "./api-keys.controller";
 import { parseAuthToken } from "../users/users.controller";
+import { rateLimiter } from "../ratelimit/rate-limiter";
 
 function errorResponse(message: string, status: number) {
   return new Response(JSON.stringify({ error: message }), {
@@ -15,6 +16,7 @@ export function ApiKeyRoutes() {
 
   app
     .use(typedEnv)
+    .use(rateLimiter())
     .derive(async ({ env, request }) => {
       const authHeader = request.headers.get("Authorization");
       const authUser = await parseAuthToken(authHeader ?? undefined, env);
@@ -31,12 +33,7 @@ export function ApiKeyRoutes() {
         if (!authUser) return errorResponse("Unauthorized", 401);
 
         try {
-          const apiKey = await createApiKey(
-            params.id,
-            { name: body.name, project_id: params.id },
-            env,
-            authUser,
-          );
+          const apiKey = await createApiKey(params.id, { name: body.name, project_id: params.id }, env, authUser);
           return apiKey;
         } catch (err) {
           const message = err instanceof Error ? err.message : "Failed to create API key";

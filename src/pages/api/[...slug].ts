@@ -2,7 +2,6 @@ import { Elysia } from "elysia";
 import type { APIRoute } from "astro";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { openapi } from "@elysiajs/openapi";
-import { rateLimiter } from "src/backend/ratelimit/rate-limiter";
 import {
   UserRoutes,
   BlogRoutes,
@@ -20,9 +19,7 @@ const handle: APIRoute = async (ctx) => {
     adapter: CloudflareAdapter,
     aot: false,
     normalize: true,
-  })
-    .use(openapi())
-    .use(rateLimiter());
+  }).use(openapi());
   app
     .decorate({
       env: ctx.locals.runtime.env,

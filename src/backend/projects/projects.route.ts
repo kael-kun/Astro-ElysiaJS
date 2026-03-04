@@ -3,6 +3,7 @@ import { typedEnv } from "src/types/elysia";
 import { createProject, getProjects, getProjectById, updateProject, deleteProject } from "./projects.controller";
 import type { CreateProjectInput, UpdateProjectInput } from "./projects.types";
 import { parseAuthToken } from "../users/users.controller";
+import { rateLimiter } from "../ratelimit/rate-limiter";
 
 function errorResponse(message: string, status: number) {
   return new Response(JSON.stringify({ error: message }), {
@@ -16,6 +17,7 @@ export function ProjectRoutes() {
 
   app
     .use(typedEnv)
+    .use(rateLimiter())
     .derive(async ({ env, request }) => {
       const authHeader = request.headers.get("Authorization");
       const authUser = await parseAuthToken(authHeader ?? undefined, env);

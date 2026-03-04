@@ -1,32 +1,36 @@
 import Elysia, { t } from "elysia";
 import { typedEnv } from "src/types/elysia";
+import { rateLimiter } from "../ratelimit/rate-limiter";
 
-export const blogImagesRoute = new Elysia().use(typedEnv).get(
-  "/images/blogs/:fileName",
-  async ({ params, env }) => {
-    const { fileName } = params;
+export const blogImagesRoute = new Elysia()
+  .use(rateLimiter())
+  .use(typedEnv)
+  .get(
+    "/images/blogs/:fileName",
+    async ({ params, env }) => {
+      const { fileName } = params;
 
-    try {
-      const object = await env.CMS_BUCKET.get(`blogs/${fileName}`);
+      try {
+        const object = await env.CMS_BUCKET.get(`blogs/${fileName}`);
 
-      if (!object) {
-        return new Response("Image not found", { status: 404 });
+        if (!object) {
+          return new Response("Image not found", { status: 404 });
+        }
+
+        return new Response(object.body, {
+          headers: {
+            "Content-Type": object.httpMetadata?.contentType || "image/jpeg",
+            "Cache-Control": "public, max-age=31536000",
+          },
+        });
+      } catch (error) {
+        console.error("Error fetching image:", error);
+        return new Response("Error fetching image", { status: 500 });
       }
-
-      return new Response(object.body, {
-        headers: {
-          "Content-Type": object.httpMetadata?.contentType || "image/jpeg",
-          "Cache-Control": "public, max-age=31536000",
-        },
-      });
-    } catch (error) {
-      console.error("Error fetching image:", error);
-      return new Response("Error fetching image", { status: 500 });
-    }
-  },
-  {
-    params: t.Object({
-      fileName: t.String(),
-    }),
-  },
-);
+    },
+    {
+      params: t.Object({
+        fileName: t.String(),
+      }),
+    },
+  );
