@@ -2,7 +2,17 @@ import { Elysia } from "elysia";
 import type { APIRoute } from "astro";
 import { CloudflareAdapter } from "elysia/adapter/cloudflare-worker";
 import { openapi } from "@elysiajs/openapi";
-import { SampleRoutes } from "../../routes/Sample";
+import {
+  UserRoutes,
+  BlogRoutes,
+  GenerateBlogRoutes,
+  ProjectRoutes,
+  ApiKeyRoutes,
+  PublicBlogRoutes,
+  DashboardRoutes,
+} from "src/backend";
+import { blogImagesRoute } from "src/backend/blogs/images.route";
+import { rateLimiter } from "src/backend/ratelimit/rate-limiter";
 
 const handle: APIRoute = async (ctx) => {
   const app = new Elysia({
@@ -10,16 +20,23 @@ const handle: APIRoute = async (ctx) => {
     adapter: CloudflareAdapter,
     aot: false,
     normalize: true,
-  }).use(openapi());
-  app.decorate({
-    env: ctx.locals.runtime.env,
-    urlData: ctx.url,
-    astroCookies: ctx.cookies,
-  });
-  // ---=-----------------
-  app.use(SampleRoutes());
-
-  // ---------------------
+  })
+    .use(openapi())
+    .use(rateLimiter());
+  app
+    .decorate({
+      env: ctx.locals.runtime.env,
+      urlData: ctx.url,
+      astroCookies: ctx.cookies,
+    })
+    .use(blogImagesRoute)
+    .use(GenerateBlogRoutes())
+    .use(UserRoutes())
+    .use(BlogRoutes())
+    .use(ProjectRoutes())
+    .use(ApiKeyRoutes())
+    .use(PublicBlogRoutes())
+    .use(DashboardRoutes());
 
   return await app.handle(ctx.request);
 };

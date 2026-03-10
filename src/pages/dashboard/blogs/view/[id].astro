@@ -1,0 +1,10 @@
+---
+import Layout from "../../../../layouts/Layout.astro";
+import { BlogViewContainer } from "src/components/blog/containers/BlogViewContainer";
+
+const { id } = Astro.params;
+---
+
+<Layout>
+  <BlogViewContainer client:only="react" blogId={id || ""} />
+</Layout>

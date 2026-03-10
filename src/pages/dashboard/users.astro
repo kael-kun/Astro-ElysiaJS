@@ -1,0 +1,8 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { UsersContainer } from "src/components/users/containers/UserContainer";
+---
+
+<Layout>
+	<UsersContainer client:only="react" />
+</Layout>

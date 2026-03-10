@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "astroelysia",
+  "name": "astro-elysia",
   "main": "./dist/_worker.js/index.js",
   "compatibility_date": "2025-09-15",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -8,8 +8,30 @@
     "directory": "./dist",
     "binding": "ASSETS",
   },
+  "ratelimits": [
+    {
+      "name": "MY_RATE_LIMITER",
+      "namespace_id": "1999",
+      "simple": {
+        "limit": 120,
+        "period": 60,
+      },
+    },
+  ],
   "ai": {
     "binding": "AI",
   },
-  
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cms-database",
+      "database_id": "f4b42823-1462-46dc-8b05-0e3c5d4bb0a0",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "CMS_BUCKET",
+      "bucket_name": "cms-bucket",
+    },
+  ],"env": {"staging":{"name":"astro-elysia-preview"}},
 }

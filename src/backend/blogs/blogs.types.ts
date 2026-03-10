@@ -1,0 +1,78 @@
+import type { BlogStatus } from "../types/index";
+
+export interface DbBlog {
+  id: string;
+  user_id: string;
+  title: string | null;
+  description: string | null;
+  content: string | null;
+  meta_description: string | null;
+  status: BlogStatus;
+  image_url: string | null;
+  project_id: string | null;
+  view_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbBlogView {
+  id: string;
+  blog_id: string;
+  ip_hash: string | null;
+  user_agent: string | null;
+  referer: string | null;
+  viewed_at: string;
+}
+
+export interface CreateBlogInput {
+  user_id: string;
+  title?: string;
+  description?: string;
+  content: string;
+  meta_description?: string;
+  status?: BlogStatus;
+  image?: string | null;
+  project_id?: string;
+}
+
+export interface UpdateBlogInput {
+  title?: string;
+  description?: string;
+  content?: string;
+  meta_description?: string;
+  status?: BlogStatus;
+  image?: File | null;
+  image_url?: string | null;
+}
+
+export interface BlogResponse {
+  id: string;
+  user_id: string;
+  title: string | null;
+  description: string | null;
+  content: string | null;
+  meta_description: string | null;
+  status: BlogStatus;
+  image_url: string | null;
+  project_id?: string | null;
+  view_count?: number;
+  createdAt: string;
+  updatedAt: string;
+  project_name?: string;
+  user_name?: string;
+}
+
+export interface BlogWithUser extends BlogResponse {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export interface PaginatedBlogsResponse {
+  results: BlogResponse[];
+  total: number;
+  page: number;
+  totalPages: number;
+}

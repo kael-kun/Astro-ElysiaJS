@@ -1,0 +1,156 @@
+import type { AuthUser } from "../users/users.types";
+import type {
+  CreateProjectInput,
+  UpdateProjectInput,
+  ProjectResponse,
+  PaginatedProjectsResponse,
+} from "./projects.types";
+import { createProjectService } from "./projects.service";
+
+function toProjectResponse(project: {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  user_name?: string;
+}): ProjectResponse {
+  return {
+    id: project.id,
+    user_id: project.user_id,
+    name: project.name,
+    description: project.description,
+    createdAt: project.created_at,
+    updatedAt: project.updated_at,
+    user_name: project.user_name,
+  };
+}
+
+export async function getProjects(
+  env: Env,
+  authUser: AuthUser,
+  limit = 10,
+  page = 1,
+): Promise<PaginatedProjectsResponse> {
+  const projectService = createProjectService(env);
+
+  let result;
+  if (authUser.role === "admin") {
+    result = await projectService.findAll(limit, page);
+    return {
+      projects: result.projects.map((p) => toProjectResponse(p)),
+      total: result.total,
+      page: result.page,
+      totalPages: result.totalPages,
+    };
+  }
+
+  const { projects, total, totalPages } = await projectService.findByUserId(authUser.id, limit, page);
+
+  return {
+    projects: projects.map(toProjectResponse),
+    total,
+    page,
+    totalPages,
+  };
+}
+
+export async function getProjectById(id: string, env: Env, authUser: AuthUser): Promise<ProjectResponse> {
+  const projectService = createProjectService(env);
+  const project = await projectService.findById(id);
+
+  if (!project) {
+    throw new Error("Project not found");
+  }
+
+  if (project.user_id !== authUser.id && authUser.role !== "admin") {
+    throw new Error("Forbidden: Cannot access other users' projects");
+  }
+
+  return toProjectResponse(project);
+}
+
+export async function createProject(data: CreateProjectInput, env: Env, authUser: AuthUser): Promise<ProjectResponse> {
+  if (!data.name?.trim()) {
+    throw new Error("Project name is required");
+  }
+
+  const projectService = createProjectService(env);
+
+  // Check project limit for client users
+  if (authUser.role === "client") {
+    const projectCount = await projectService.getProjectCountByUserId(authUser.id);
+    if (projectCount >= 5) {
+      throw new Error("Client users can only create up to 5 projects. Please delete an existing project to create a new one.");
+    }
+  }
+
+  const project = await projectService.create(authUser.id, data);
+
+  await projectService.createActivityLog(
+    authUser.id,
+    "project",
+    project.id,
+    project.name,
+    "created",
+    `Created project: ${project.name}`,
+  );
+
+  return toProjectResponse(project);
+}
+
+export async function updateProject(
+  id: string,
+  data: UpdateProjectInput,
+  env: Env,
+  authUser: AuthUser,
+): Promise<ProjectResponse> {
+  const projectService = createProjectService(env);
+  const existing = await projectService.findById(id);
+
+  if (!existing) {
+    throw new Error("Project not found");
+  }
+
+  if (existing.user_id !== authUser.id && authUser.role !== "admin") {
+    throw new Error("Forbidden: Cannot update other users' projects");
+  }
+
+  const project = await projectService.update(id, data);
+
+  await projectService.createActivityLog(
+    authUser.id,
+    "project",
+    id,
+    project.name,
+    "updated",
+    `Updated project: ${project.name}`,
+  );
+
+  return toProjectResponse(project);
+}
+
+export async function deleteProject(id: string, env: Env, authUser: AuthUser): Promise<void> {
+  const projectService = createProjectService(env);
+  const existing = await projectService.findById(id);
+
+  if (!existing) {
+    throw new Error("Project not found");
+  }
+
+  if (existing.user_id !== authUser.id && authUser.role !== "admin") {
+    throw new Error("Forbidden: Cannot delete other users' projects");
+  }
+
+  await projectService.delete(id);
+
+  await projectService.createActivityLog(
+    authUser.id,
+    "project",
+    id,
+    existing.name,
+    "deleted",
+    `Deleted project: ${existing.name}`,
+  );
+}

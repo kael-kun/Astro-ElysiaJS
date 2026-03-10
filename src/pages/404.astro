@@ -1,0 +1,94 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <!-- Main Container: White background with subtle red grid -->
+  <div class="h-screen flex items-center justify-center bg-white relative overflow-hidden">
+    
+    <!-- Decorative Background Elements (Red Theme) -->
+    <div class="absolute inset-0 z-0 pointer-events-none">
+      <!-- Subtle Grid Pattern -->
+      <div class="absolute top-0 left-0 w-full h-full bg-[linear-gradient(to_right,#fca5a520_1px,transparent_1px),linear-gradient(to_bottom,#fca5a520_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+      
+      <!-- Soft Red Glows for depth -->
+      <div class="absolute left-0 right-0 top-0 -z-10 m-auto h-[400px] w-[400px] rounded-full bg-red-200 opacity-30 blur-[120px]"></div>
+      <div class="absolute right-10 bottom-10 -z-10 h-[300px] w-[300px] rounded-full bg-red-100 opacity-40 blur-[80px]"></div>
+    </div>
+
+    <!-- Content Card: White with Red Border Accent -->
+    <div class="relative z-10 max-w-lg mx-auto px-8 py-16 bg-white/80 backdrop-blur-md border border-red-100 rounded-3xl shadow-2xl shadow-red-900/5 animate-fade-in-up">
+      
+      <!-- Animated Icon: Red Outline -->
+      <div class="mb-8 flex justify-center">
+        <div class="relative">
+          <!-- Red Glow behind icon -->
+          <div class="absolute inset-0 bg-red-500 rounded-full blur-xl opacity-20 animate-pulse"></div>
+          
+          <svg class="relative w-24 h-24 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <!-- Document Shape -->
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            <!-- Broken/Error Line -->
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01" class="animate-bounce" style="animation-duration: 2s;"></path>
+          </svg>
+        </div>
+      </div>
+      
+      <!-- 404 Text: Bold Red Gradient -->
+      <div class="text-center mb-6">
+        <h1 class="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-600 to-red-400 tracking-tighter drop-shadow-sm">
+          404
+        </h1>
+      </div>
+      
+      <!-- Heading & Description -->
+      <div class="text-center mb-10">
+        <h2 class="text-2xl font-bold text-gray-900 mb-3">
+          Page Not Found
+        </h2>
+        <p class="text-gray-500 leading-relaxed max-w-xs mx-auto">
+          The page you are looking for doesn't exist or has been moved. Let's get you back on track.
+        </p>
+      </div>
+      
+      <!-- Action Buttons: Red Primary / White Secondary -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        
+        <!-- Primary Button: Solid Red -->
+        <a 
+          href="/" 
+          class="w-full sm:w-auto px-8 py-3.5 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-red-600/30 flex items-center justify-center gap-2 group"
+        >
+          <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          Go Home
+        </a>
+        
+        <!-- Secondary Button: White with Red Border -->
+        <a 
+          href="/dashboard/overview" 
+          class="w-full sm:w-auto px-8 py-3.5 bg-white text-red-600 border-2 border-red-100 font-semibold rounded-xl hover:border-red-200 hover:bg-red-50 hover:-translate-y-0.5 transition-all duration-200 shadow-sm flex items-center justify-center gap-2"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+          Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Animation Styles -->
+  <style is:global>
+    @keyframes fade-in-up {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fade-in-up {
+      animation: fade-in-up 0.6s ease-out forwards;
+    }
+  </style>
+</Layout>

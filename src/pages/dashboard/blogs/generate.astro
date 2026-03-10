@@ -1,0 +1,8 @@
+---
+import { GenerateBlogContainer } from "src/components/blog/containers/GenerateBlogContainer";
+import Layout from "../../../layouts/Layout.astro";
+---
+
+<Layout>
+  <GenerateBlogContainer client:only="react" />
+</Layout>

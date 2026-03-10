@@ -1,0 +1,138 @@
+import { useState, useCallback } from "react";
+import { getAuthHeaders } from "../../../services/fetchClient";
+
+export interface BlogFormData {
+  topic: string;
+  keywords: string;
+  tone: string;
+  audience: string;
+}
+
+export interface BlogMetadata {
+  title: string;
+  description: string;
+  meta_description: string;
+}
+
+export interface BlogGeneratorResult {
+  content: string;
+  metadata: BlogMetadata;
+  loading: boolean;
+  error: string | null;
+  generateBlog: (form: BlogFormData) => Promise<void>;
+}
+
+interface StreamChunk {
+  response?: string;
+  error?: string;
+}
+
+export const useBlogGenerator = (projectId?: string): BlogGeneratorResult => {
+  const [content, setContent] = useState("");
+  const [metadata, setMetadata] = useState<BlogMetadata>({
+    title: "",
+    description: "",
+    meta_description: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const generateBlog = useCallback(async (form: BlogFormData): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    setContent("");
+    setMetadata({ title: "", description: "", meta_description: "" });
+
+    try {
+      const headers = getAuthHeaders();
+      const hostOrigin = window.location.origin;
+
+      const requestBody = {
+        ...form,
+        ...(projectId && { projectId }),
+      };
+
+      // Step 1: Generate metadata (title, description, meta_description)
+      const metadataResponse = await fetch(`${hostOrigin}/api/generate-blog-metadata`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!metadataResponse.ok) {
+        throw new Error("Failed to generate metadata.");
+      }
+
+      const metadataResult = await metadataResponse.json() as BlogMetadata;
+      setMetadata({
+        title: metadataResult.title || "",
+        description: metadataResult.description || "",
+        meta_description: metadataResult.meta_description || "",
+      });
+
+      // Step 2: Generate content (streaming)
+      const contentResponse = await fetch(`${hostOrigin}/api/generate-blog`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!contentResponse.ok || !contentResponse.body) {
+        throw new Error("Failed to generate blog content.");
+      }
+
+      const reader = contentResponse.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith("data: ")) continue;
+
+          try {
+            const json: StreamChunk = JSON.parse(trimmed.replace(/^data:\s*/, ""));
+            if (json.response) {
+              setContent((prev) => prev + json.response);
+            }
+            if (json.error) {
+              setError(json.error);
+            }
+          } catch {
+            console.warn("Failed to parse chunk:", trimmed);
+          }
+        }
+      }
+
+      // Handle leftover
+      if (buffer.startsWith("data: ")) {
+        try {
+          const json: StreamChunk = JSON.parse(buffer.replace(/^data:\s*/, ""));
+          if (json.response) {
+            setContent((prev) => prev + json.response);
+          }
+          if (json.error) {
+            setError(json.error);
+          }
+        } catch {
+          // Ignore parsing errors for leftover buffer
+        }
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Error generating blog content. Please try again.";
+      setError(errorMessage);
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId]);
+
+  return { content, metadata, loading, error, generateBlog };
+};
